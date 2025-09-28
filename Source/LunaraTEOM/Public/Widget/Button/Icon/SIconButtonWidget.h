@@ -89,5 +89,6 @@ private:
     float IconScale = 0.55f;
 
     TSharedPtr<SBox> ButtonBox;
+    TSharedPtr<SBox> IconBox;
     TSharedPtr<SImage> IconImage;
 };

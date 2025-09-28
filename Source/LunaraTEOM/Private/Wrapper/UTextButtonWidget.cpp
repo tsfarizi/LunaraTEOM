@@ -1,5 +1,5 @@
 #include "Wrapper/UTextButtonWidget.h"
-#include "Widget/STextButtonWidget.h"
+#include "Widget/Button/Text/STextButtonWidget.h"
 
 TSharedRef<SWidget> UTextButtonWidget::RebuildWidget()
 {

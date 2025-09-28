@@ -7,6 +7,9 @@
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBox.h"
 
+#include "Engine/Texture2D.h"
+#include "Materials/MaterialInterface.h"
+
 #include "SlateOptMacros.h"
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
@@ -64,6 +67,14 @@ void SIconButtonWidget::SetDiameter(float InDiameter)
         ButtonBox->SetWidthOverride(ButtonDiameter);
         ButtonBox->SetHeightOverride(ButtonDiameter);
     }
+
+    if (IconBox.IsValid())
+    {
+        IconBox->SetWidthOverride(ButtonDiameter * IconScale);
+        IconBox->SetHeightOverride(ButtonDiameter * IconScale);
+    }
+
+    RefreshIconBrush();
 }
 
 FReply SIconButtonWidget::HandleClick()
@@ -141,7 +152,7 @@ void SIconButtonWidget::RefreshIconBrush()
 
     UObject* IconObject = IconAsset.IsNull() ? nullptr : IconAsset.LoadSynchronous();
 
-    constexpr float MaxIconSize = 48.f;
+    const float MaxIconSize = ButtonDiameter * IconScale;
 
     if (UTexture2D* Texture = Cast<UTexture2D>(IconObject))
     {
@@ -178,4 +189,3 @@ void SIconButtonWidget::RefreshIconBrush()
         IconImage->SetVisibility(bHasIcon ? EVisibility::Visible : EVisibility::Collapsed);
     }
 }
-LD_OPTIMIZATION

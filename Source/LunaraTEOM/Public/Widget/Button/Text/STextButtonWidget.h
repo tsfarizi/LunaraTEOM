@@ -14,7 +14,7 @@ DECLARE_DELEGATE_RetVal(FReply, FOnSlateClicked)
 class SBeveledBorder;
 class STextBlock;
 
-class STextButtonWidget : public SCompoundWidget
+class LUNARATEOM_API STextButtonWidget : public SCompoundWidget
 {
 public:
     SLATE_BEGIN_ARGS(STextButtonWidget)
@@ -28,16 +28,18 @@ public:
         SLATE_ARGUMENT(const FLunaraTeomSlateStyle*, Style)
         SLATE_ARGUMENT(TSoftObjectPtr<UObject>, FontObject)
         SLATE_ARGUMENT(int32, FontSize)
-        SLATE_END_ARGS()
+    SLATE_END_ARGS()
 
     void Construct(const FArguments& InArgs);
     void SetExplicitFont(TSoftObjectPtr<UObject> InFontObject, int32 InFontSize);
 
 private:
-	FReply HandleClick();
+    void BuildLayout();
 
-	void ResolveStyle(const FLunaraTeomSlateStyle* InStyle);
-	void RebuildLabelFont();
+    FReply HandleClick();
+
+    void ResolveStyle(const FLunaraTeomSlateStyle* InStyle);
+    void RebuildLabelFont();
     void HandleHovered();
     void HandleUnhovered();
     void HandlePressed();
@@ -50,27 +52,27 @@ private:
     TOptional<FSlateRenderTransform> GetButtonRenderTransform() const;
 
 private:
-	FOnSlateClicked OnClicked;
+    FOnSlateClicked OnClicked;
 
-	FButtonStyle ButtonStyle;
+    FButtonStyle ButtonStyle;
 
-	FCurveSequence HoverSeq;
-	FCurveHandle   HoverAlpha;
-	FCurveSequence PressSeq;
-	FCurveHandle   PressAlpha;
+    FCurveSequence HoverSeq;
+    FCurveHandle   HoverAlpha;
+    FCurveSequence PressSeq;
+    FCurveHandle   PressAlpha;
     FCurveSequence ClickCycleSeq;
     FCurveHandle   ClickShrinkAlpha;
     FCurveHandle   ClickReturnAlpha;
 
-	TSharedPtr<SBeveledBorder> InnerPanel;
-	TSharedPtr<STextBlock>     LabelText;
+    TAttribute<FText> LabelAttr;
+    TSharedPtr<SBeveledBorder> InnerPanel;
+    TSharedPtr<STextBlock>     LabelText;
 
     const FLunaraTeomSlateStyle* StyleRef = nullptr;
     FSlateFontInfo LabelFont;
 
-    // Optional explicit font from UMG wrapper (Font or FontFace)
     TSoftObjectPtr<UObject> ExplicitFontObject;
     int32 ExplicitFontSize = 18;
 
-	FSlateColor TextColor = FSlateColor(FLinearColor::White);
+    FSlateColor TextColor = FSlateColor(FLinearColor::White);
 };

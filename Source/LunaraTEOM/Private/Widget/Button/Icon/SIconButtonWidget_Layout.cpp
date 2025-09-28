@@ -1,7 +1,5 @@
 #include "Widget/Button/Icon/SIconButtonWidget.h"
 
-#include "Widget/SBeveledBorder.h"
-
 #include "UI/LunaraTeomSlateWidgetStyle.h"
 
 #include "Widgets/Input/SButton.h"
@@ -12,6 +10,8 @@
 #include "Styling/CoreStyle.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
 
+#include "Framework/Application/SlateApplication.h"
+
 #include "Rendering/DrawElements.h"
 
 #include "SlateOptMacros.h"
@@ -20,22 +20,6 @@ BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 void SIconButtonWidget::BuildLayout()
 {
-    const FLinearColor DeepBlue = StyleRef ? StyleRef->DeepBlue : FLinearColor(0.08f, 0.12f, 0.20f);
-    const FLinearColor MoonGold = StyleRef ? StyleRef->MoonGold : FLinearColor(0.72f, 0.54f, 0.23f);
-    const FLinearColor BaseGold = StyleRef ? StyleRef->BaseGold : FLinearColor(0.66f, 0.48f, 0.18f);
-
-    constexpr float OuterBevelValue  = 8.f;
-    constexpr float OuterNotchDepth  = 10.f;
-    constexpr float OuterNotchHeight = 20.f;
-
-    constexpr float MidBevelValue    = 6.f;
-    constexpr float MidNotchDepth    = 8.f;
-    constexpr float MidNotchHeight   = 20.f;
-
-    constexpr float InnerBevelValue  = 4.f;
-    constexpr float InnerNotchDepth  = 8.f;
-    constexpr float InnerNotchHeight = 16.f;
-
     ChildSlot
     [
         SAssignNew(ButtonBox, SBox)
@@ -53,55 +37,19 @@ void SIconButtonWidget::BuildLayout()
             .OnPressed(this, &SIconButtonWidget::HandlePressed)
             .OnReleased(this, &SIconButtonWidget::HandleReleased)
             [
-                SNew(SBeveledBorder)
-                .Bevel(OuterBevelValue)
-                .NotchDepth(OuterNotchDepth)
-                .NotchHeight(OuterNotchHeight)
-                .Color(DeepBlue)
-                .Padding(FMargin(4.f))
+                SNew(SOverlay)
+                + SOverlay::Slot()
+                .HAlign(HAlign_Center)
+                .VAlign(VAlign_Center)
                 [
-                    SNew(SBeveledBorder)
-                    .Bevel(MidBevelValue)
-                    .NotchDepth(MidNotchDepth)
-                    .NotchHeight(MidNotchHeight)
-                    .Color(MoonGold * 0.9f)
-                    .Padding(FMargin(2.f))
+                    SAssignNew(IconBox, SBox)
+                    .WidthOverride(ButtonDiameter * IconScale)
+                    .HeightOverride(ButtonDiameter * IconScale)
                     [
-                        SNew(SBeveledBorder)
-                        .Bevel(InnerBevelValue)
-                        .NotchDepth(InnerNotchDepth)
-                        .NotchHeight(InnerNotchHeight)
-                        .Color(BaseGold)
-                        .Padding(FMargin(4.f))
-                        [
-                            SNew(SOverlay)
-                            + SOverlay::Slot()
-                            .HAlign(HAlign_Fill)
-                            .VAlign(VAlign_Fill)
-                            [
-                                SAssignNew(InnerPanel, SBeveledBorder)
-                                .Bevel(InnerBevelValue * 0.75f)
-                                .NotchDepth(InnerNotchDepth * 0.75f)
-                                .NotchHeight(InnerNotchHeight * 0.85f)
-                                .Color(TAttribute<FLinearColor>::Create(
-                                    TAttribute<FLinearColor>::FGetter::CreateSP(this, &SIconButtonWidget::GetFillColor)))
-                                .Padding(FMargin(0.f))
-                            ]
-                            + SOverlay::Slot()
-                            .HAlign(HAlign_Center)
-                            .VAlign(VAlign_Center)
-                            [
-                                SNew(SBox)
-                                .WidthOverride(ButtonDiameter * IconScale)
-                                .HeightOverride(ButtonDiameter * IconScale)
-                                [
-                                    SAssignNew(IconImage, SImage)
-                                    .Image(nullptr)
-                                    .ColorAndOpacity(FLinearColor::White)
-                                    .Visibility(EVisibility::Collapsed)
-                                ]
-                            ]
-                        ]
+                        SAssignNew(IconImage, SImage)
+                        .Image(nullptr)
+                        .ColorAndOpacity(FLinearColor::White)
+                        .Visibility(EVisibility::Collapsed)
                     ]
                 ]
             ]
@@ -122,6 +70,11 @@ int32 SIconButtonWidget::OnPaint(const FPaintArgs& Args,
     const FVector2D Size = AllottedGeometry.GetLocalSize();
     const float Diameter = FMath::Min(Size.X, Size.Y);
 
+    if (Diameter <= KINDA_SMALL_NUMBER)
+    {
+        return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
+    }
+
     const float OuterStroke = FMath::Clamp(Diameter * 0.08f, 2.f, 8.f);
     const float InnerStroke = FMath::Clamp(Diameter * 0.05f, 1.f, 6.f);
 
@@ -134,101 +87,137 @@ int32 SIconButtonWidget::OnPaint(const FPaintArgs& Args,
     const FVector2D InnerSize = MiddleSize - FVector2D(InnerStroke * 2.f, InnerStroke * 2.f);
     const FVector2D InnerOffset = MiddleOffset + FVector2D(InnerStroke, InnerStroke);
 
+    if (InnerSize.X <= 0.f || InnerSize.Y <= 0.f)
+    {
+        return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId, InWidgetStyle, bParentEnabled);
+    }
+
     const FLinearColor Tint = InWidgetStyle.GetColorAndOpacityTint();
 
     const FLinearColor OuterColor = GetOuterStrokeColor() * Tint;
     const FLinearColor InnerColor = GetInnerStrokeColor() * Tint;
     const FLinearColor FillColor  = GetFillColor() * Tint;
 
-    const FVector4 OuterRadius(Diameter * 0.5f);
-    const FVector4 MiddleRadius(FMath::Max(1.f, MiddleSize.X * 0.5f));
-    const FVector4 InnerRadius(FMath::Max(1.f, InnerSize.X * 0.5f));
+    const float OuterRadius = Diameter * 0.5f;
+    const float MiddleRadius = FMath::Max(1.f, MiddleSize.X * 0.5f);
+    const float InnerRadius  = FMath::Max(1.f, InnerSize.X * 0.5f);
 
-    const FLinearColor ShadowColor(0.f, 0.f, 0.f, 0.28f * Tint.A);
     const FVector2D ShadowOffset(2.f, 2.f);
+    const FLinearColor ShadowColor(0.f, 0.f, 0.f, 0.25f * Tint.A);
 
-    FSlateRoundedBoxBrush OuterShadowBrush(ShadowColor, OuterRadius);
-    FSlateRoundedBoxBrush MiddleShadowBrush(ShadowColor * 0.9f, MiddleRadius);
-    FSlateRoundedBoxBrush InnerShadowBrush(ShadowColor * 0.8f, InnerRadius);
+    auto ToGeometry = [&](const FVector2D& Offset, const FVector2D& LocalSize)
+    {
+        return AllottedGeometry.ToPaintGeometry(FVector2f(LocalSize), FSlateLayoutTransform(Offset));
+    };
 
-    FSlateDrawElement::MakeBox(
-        OutDrawElements,
-        LayerId,
-        AllottedGeometry.ToPaintGeometry(OuterOffset + ShadowOffset, OuterSize),
-        &OuterShadowBrush,
-        ESlateDrawEffect::None,
-        ShadowColor);
+    auto PaintCircle = [&](int32& InLayer, const FVector2D& Offset, const FVector2D& CircSize, float Radius, const FLinearColor& Color)
+    {
+        FSlateRoundedBoxBrush Brush(Color, Radius);
+        FSlateDrawElement::MakeBox(
+            OutDrawElements,
+            InLayer++,
+            ToGeometry(Offset, CircSize),
+            &Brush,
+            ESlateDrawEffect::None,
+            Color);
+    };
 
-    FSlateDrawElement::MakeBox(
-        OutDrawElements,
-        LayerId + 1,
-        AllottedGeometry.ToPaintGeometry(MiddleOffset + ShadowOffset * 0.8f, MiddleSize),
-        &MiddleShadowBrush,
-        ESlateDrawEffect::None,
-        ShadowColor * 0.9f);
+    auto PaintCircleWithShadow = [&](int32& InLayer, const FVector2D& Offset, const FVector2D& CircSize, float Radius, const FLinearColor& Color)
+    {
+        FSlateRoundedBoxBrush ShadowBrush(ShadowColor, Radius);
+        FSlateDrawElement::MakeBox(
+            OutDrawElements,
+            InLayer++,
+            ToGeometry(Offset + ShadowOffset, CircSize),
+            &ShadowBrush,
+            ESlateDrawEffect::None,
+            ShadowColor);
 
-    FSlateDrawElement::MakeBox(
-        OutDrawElements,
-        LayerId + 2,
-        AllottedGeometry.ToPaintGeometry(InnerOffset + ShadowOffset * 0.6f, InnerSize),
-        &InnerShadowBrush,
-        ESlateDrawEffect::None,
-        ShadowColor * 0.8f);
+        PaintCircle(InLayer, Offset, CircSize, Radius, Color);
+    };
 
-    FSlateRoundedBoxBrush OuterBrush(OuterColor, OuterRadius);
-    FSlateRoundedBoxBrush MiddleBrush(InnerColor, MiddleRadius);
-    FSlateRoundedBoxBrush InnerBrush(FillColor, InnerRadius);
+    auto PaintNotchedFill = [&](int32& InLayer, const FVector2D& Offset, const FVector2D& CircSize, float BaseRadius, float MaxRadius, float NotchDepth, float NotchHalfAngle, const FLinearColor& BaseColor)
+    {
+        const FVector2f LocalCenter(CircSize * 0.5f);
+        constexpr int32 SegmentCount = 96;
 
-    FSlateDrawElement::MakeBox(
-        OutDrawElements,
-        LayerId + 3,
-        AllottedGeometry.ToPaintGeometry(OuterOffset, OuterSize),
-        &OuterBrush,
-        ESlateDrawEffect::None,
-        OuterColor);
+        TArray<FSlateVertex> Vertices;
+        TArray<SlateIndex> Indices;
+        Vertices.Reserve(SegmentCount + 1);
+        Indices.Reserve(SegmentCount * 3);
 
-    FSlateDrawElement::MakeBox(
-        OutDrawElements,
-        LayerId + 4,
-        AllottedGeometry.ToPaintGeometry(MiddleOffset, MiddleSize),
-        &MiddleBrush,
-        ESlateDrawEffect::None,
-        InnerColor);
+        const float AllowedGrowth = FMath::Max(0.f, MaxRadius - BaseRadius);
+        const float MaxDepth = FMath::Clamp(NotchDepth, 0.f, AllowedGrowth);
 
-    FSlateDrawElement::MakeBox(
-        OutDrawElements,
-        LayerId + 5,
-        AllottedGeometry.ToPaintGeometry(InnerOffset, InnerSize),
-        &InnerBrush,
-        ESlateDrawEffect::None,
-        FillColor);
+        const float NotchAngles[4] = { 0.f, PI * 0.5f, PI, PI * 1.5f };
 
-    const FVector2D HighlightSize(InnerSize.X, InnerSize.Y * 0.55f);
-    const FVector2D HighlightOffset = InnerOffset;
-    const FVector2D LowlightSize(InnerSize.X, InnerSize.Y * 0.45f);
-    const FVector2D LowlightOffset = InnerOffset + FVector2D(0.f, InnerSize.Y * 0.55f);
+        const FPaintGeometry FillGeometry = AllottedGeometry.ToPaintGeometry(FVector2f::ZeroVector, FSlateLayoutTransform(Offset));
+        const FSlateRenderTransform FillTransform = FillGeometry.GetAccumulatedRenderTransform();
 
-    const FLinearColor HighlightColor = (FillColor * 1.18f).CopyWithNewOpacity(0.35f * FillColor.A);
-    const FLinearColor LowlightColor  = (FillColor * 0.72f).CopyWithNewOpacity(0.4f * FillColor.A);
+        for (int32 i = 0; i < SegmentCount; ++i)
+        {
+            const float Angle = (2.f * PI * i) / SegmentCount;
+            float Growth = 0.f;
 
-    FSlateRoundedBoxBrush HighlightBrush(HighlightColor, InnerRadius);
-    FSlateRoundedBoxBrush LowlightBrush(LowlightColor, InnerRadius);
+            for (float NotchAngle : NotchAngles)
+            {
+                const float Dist = FMath::Abs(FMath::FindDeltaAngleRadians(Angle, NotchAngle));
+                if (Dist < NotchHalfAngle)
+                {
+                    const float Weight = 1.f - (Dist / NotchHalfAngle);
+                    Growth = FMath::Max(Growth, MaxDepth * Weight);
+                }
+            }
 
-    FSlateDrawElement::MakeBox(
-        OutDrawElements,
-        LayerId + 6,
-        AllottedGeometry.ToPaintGeometry(HighlightOffset, HighlightSize),
-        &HighlightBrush,
-        ESlateDrawEffect::None,
-        HighlightColor);
+            float Radius = BaseRadius + Growth;
+            Radius = FMath::Min(Radius, MaxRadius);
+            Radius = FMath::Max(1.f, Radius);
 
-    FSlateDrawElement::MakeBox(
-        OutDrawElements,
-        LayerId + 7,
-        AllottedGeometry.ToPaintGeometry(LowlightOffset, LowlightSize),
-        &LowlightBrush,
-        ESlateDrawEffect::None,
-        LowlightColor);
+            const float ShadeFactor = FMath::Clamp(1.f + 0.18f * FMath::Sin(Angle), 0.75f, 1.2f);
+            FLinearColor VertexColor = BaseColor * ShadeFactor;
+            VertexColor.A = BaseColor.A;
 
-    return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, LayerId + 8, InWidgetStyle, bParentEnabled);
+            const FVector2f Position = LocalCenter + FVector2f(FMath::Cos(Angle) * Radius, FMath::Sin(Angle) * Radius);
+            Vertices.Add(FSlateVertex::Make(FillTransform, Position, FVector2f::ZeroVector, VertexColor.ToFColor(true)));
+        }
+
+        const int32 CenterIndex = Vertices.Num();
+        Vertices.Add(FSlateVertex::Make(FillTransform, LocalCenter, FVector2f::ZeroVector, BaseColor.ToFColor(true)));
+
+        for (int32 i = 0; i < SegmentCount; ++i)
+        {
+            const int32 Next = (i + 1) % SegmentCount;
+            Indices.Add(CenterIndex);
+            Indices.Add(i);
+            Indices.Add(Next);
+        }
+
+        const FSlateBrush* WhiteBrush = FCoreStyle::Get().GetBrush("WhiteBrush");
+        FSlateResourceHandle Handle = FSlateApplication::Get().GetRenderer()->GetResourceHandle(*WhiteBrush);
+
+        FSlateDrawElement::MakeCustomVerts(
+            OutDrawElements,
+            InLayer++,
+            Handle,
+            Vertices,
+            Indices,
+            nullptr,
+            0,
+            0);
+    };
+
+    int32 CurrentLayer = LayerId;
+
+    PaintCircleWithShadow(CurrentLayer, OuterOffset, OuterSize, OuterRadius, OuterColor);
+    PaintCircleWithShadow(CurrentLayer, MiddleOffset, MiddleSize, MiddleRadius, InnerColor);
+
+    const float FillInset   = FMath::Clamp(Diameter * 0.05f, 2.f, InnerRadius * 0.45f);
+    const float FillBaseRadius = InnerRadius - FillInset;
+    const float FillOuterLimit = InnerRadius - (FillInset * 0.15f);
+    const float NotchDepth  = FMath::Clamp(Diameter * 0.08f, 3.f, FillOuterLimit - FillBaseRadius);
+    const float NotchHalfAngle = PI / 18.f;
+
+    PaintNotchedFill(CurrentLayer, InnerOffset, InnerSize, FillBaseRadius, FillOuterLimit, NotchDepth, NotchHalfAngle, FillColor);
+
+    return SCompoundWidget::OnPaint(Args, AllottedGeometry, MyCullingRect, OutDrawElements, CurrentLayer, InWidgetStyle, bParentEnabled);
 }
