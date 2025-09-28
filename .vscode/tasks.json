@@ -1,0 +1,29 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build LunaraTEOM",
+            "type": "shell",
+            "command": "C:/Program Files/Epic Games/UE_5.6/Engine/Build/BatchFiles/Build.bat",
+            "args": [
+                "LunaraTEOMEditor",
+                "Win64",
+                "Development",
+                "${workspaceFolder}/LunaraTEOM.uproject"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": "$msCompile",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "dedicated",
+                "focus": false
+            }
+        }
+    ]
+}

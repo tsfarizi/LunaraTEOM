@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Build LunaraTEOM (UE 5.6)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "C:/Program Files/Epic Games/UE_5.6/Engine/Build/BatchFiles/Build.bat",
+            "args": [
+                "LunaraTEOMEditor",
+                "Win64",
+                "Development",
+                "${workspaceFolder}/LunaraTEOM.uproject"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "stopAtEntry": false
+        }
+    ]
+}
