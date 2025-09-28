@@ -53,47 +53,6 @@ void SMainWindowWidget::BuildLayout()
         .OnCloseClicked(FSimpleDelegate::CreateSP(this, &SMainWindowWidget::HandleCloseButton));
     TitleBar->SetTitleColor(FSlateColor(TitleColor));
 
-    constexpr float TitleOuterBevel = 6.f;
-    constexpr float TitleMiddleBevel = 5.f;
-    constexpr float TitleInnerBevel = 4.f;
-    constexpr float TitleOuterNotchDepth = 8.f;
-    constexpr float TitleMiddleNotchDepth = 6.f;
-    constexpr float TitleInnerNotchDepth = 4.f;
-    constexpr float TitleNotchHeight = 18.f;
-
-    TSharedRef<SWidget> TitleFrame =
-        SNew(SBeveledBorder)
-        .Bevel(TitleOuterBevel)
-        .NotchDepth(TitleOuterNotchDepth)
-        .NotchHeight(TitleNotchHeight)
-        .RightNotchCount(3)
-        .LeftNotchCount(1)
-        .Color(MoonGold * 0.9f)
-        .Padding(FMargin(2.f))
-        [
-            SNew(SBeveledBorder)
-            .Bevel(TitleMiddleBevel)
-            .NotchDepth(TitleMiddleNotchDepth)
-            .NotchHeight(TitleNotchHeight)
-            .RightNotchCount(3)
-            .LeftNotchCount(1)
-            .Color(BaseGold)
-            .Padding(FMargin(2.f))
-            [
-                SNew(SBeveledBorder)
-                .Bevel(TitleInnerBevel)
-                .NotchDepth(TitleInnerNotchDepth)
-                .NotchHeight(TitleNotchHeight)
-                .RightNotchCount(3)
-                .LeftNotchCount(1)
-                .Color(HigLightGold)
-                .Padding(FMargin(2.f, 2.f, 2.f, 1.f))
-                [
-                    TitleBar.ToSharedRef()
-                ]
-            ]
-        ];
-
     TSharedRef<SOverlay> WindowOverlay =
         SNew(SOverlay)
         + SOverlay::Slot()
@@ -111,7 +70,7 @@ void SMainWindowWidget::BuildLayout()
             + SVerticalBox::Slot()
             .AutoHeight()
             [
-                TitleFrame
+                TitleBar.ToSharedRef()
             ]
             + SVerticalBox::Slot()
             .FillHeight(1.f)
