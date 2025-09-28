@@ -1,5 +1,5 @@
 ﻿#include "Wrapper/UMainWindowWidget.h"
-#include "Widget/SMainWindowWidget.h"
+#include "Widget/Window/Main/SMainWindowWidget.h"
 
 TSharedRef<SWidget> UMainWindowWidget::RebuildWidget()
 {

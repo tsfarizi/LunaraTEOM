@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
@@ -6,9 +6,8 @@
 #include "Styling/SlateBrush.h"
 
 struct FLunaraTeomSlateStyle;
-class SBox;
-class STextBlock;
-class SImage;
+class SWindowTitleBar;
+class SWindowContentPanel;
 
 class LUNARATEOM_API SMainWindowWidget : public SCompoundWidget
 {
@@ -42,15 +41,15 @@ private:
     void RefreshTitleFont();
     void RefreshIconBrush();
     void BuildLayout();
+    void HandleCloseButton();
 
 private:
     const FLunaraTeomSlateStyle* StyleRef = nullptr;
     FSimpleDelegate OnClose;
 
     TAttribute<FText> TitleAttr;
-    TSharedPtr<SBox> ContentBox;
-    TSharedPtr<STextBlock> TitleText;
-    TSharedPtr<SImage> IconWidget;
+    TSharedPtr<SWindowContentPanel> ContentPanel;
+    TSharedPtr<SWindowTitleBar> TitleBar;
     TSharedPtr<SWidget> CachedContent;
 
     FSlateFontInfo TitleFont;
