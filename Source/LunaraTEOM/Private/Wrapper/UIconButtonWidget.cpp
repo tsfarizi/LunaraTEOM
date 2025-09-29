@@ -6,7 +6,11 @@ TSharedRef<SWidget> UIconButtonWidget::RebuildWidget()
     SAssignNew(MySlate, SIconButtonWidget)
         .IconAsset(IconAsset)
         .Diameter(Diameter)
-        .OnClicked(FOnSlateIconButtonClicked::CreateUObject(this, &UIconButtonWidget::HandleSlateClicked));
+        .OnClicked(FOnSlateIconButtonClicked::CreateUObject(this, &UIconButtonWidget::HandleSlateClicked))
+        .OnPressed(FSimpleDelegate::CreateUObject(this, &UIconButtonWidget::HandleSlatePressed))
+        .OnReleased(FSimpleDelegate::CreateUObject(this, &UIconButtonWidget::HandleSlateReleased))
+        .OnHovered(FSimpleDelegate::CreateUObject(this, &UIconButtonWidget::HandleSlateHovered))
+        .OnUnhovered(FSimpleDelegate::CreateUObject(this, &UIconButtonWidget::HandleSlateUnhovered));
 
     return MySlate.ToSharedRef();
 }
@@ -32,4 +36,24 @@ FReply UIconButtonWidget::HandleSlateClicked()
 {
     OnClicked.Broadcast();
     return FReply::Handled();
+}
+
+void UIconButtonWidget::HandleSlatePressed()
+{
+    OnPressed.Broadcast();
+}
+
+void UIconButtonWidget::HandleSlateReleased()
+{
+    OnReleased.Broadcast();
+}
+
+void UIconButtonWidget::HandleSlateHovered()
+{
+    OnHovered.Broadcast();
+}
+
+void UIconButtonWidget::HandleSlateUnhovered()
+{
+    OnUnhovered.Broadcast();
 }

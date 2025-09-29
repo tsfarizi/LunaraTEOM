@@ -27,6 +27,10 @@ public:
         SLATE_ARGUMENT(TSoftObjectPtr<UObject>, IconAsset)
         SLATE_ARGUMENT(float, Diameter)
         SLATE_EVENT(FOnSlateIconButtonClicked, OnClicked)
+        SLATE_EVENT(FSimpleDelegate, OnPressed)
+        SLATE_EVENT(FSimpleDelegate, OnReleased)
+        SLATE_EVENT(FSimpleDelegate, OnHovered)
+        SLATE_EVENT(FSimpleDelegate, OnUnhovered)
     SLATE_END_ARGS()
 
     void Construct(const FArguments& InArgs);
@@ -65,6 +69,10 @@ private:
 
 private:
     FOnSlateIconButtonClicked OnClicked;
+    FSimpleDelegate OnPressed;
+    FSimpleDelegate OnReleased;
+    FSimpleDelegate OnHovered;
+    FSimpleDelegate OnUnhovered;
 
     FButtonStyle ButtonStyle;
 

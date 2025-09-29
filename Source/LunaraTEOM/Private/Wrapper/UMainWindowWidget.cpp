@@ -3,6 +3,8 @@
 
 TSharedRef<SWidget> UMainWindowWidget::RebuildWidget()
 {
+    bHasBroadcastShown = false;
+
     SAssignNew(MySlate, SMainWindowWidget)
         .Title(TAttribute<FText>::CreateLambda([this]{ return Title; }))
         .TitleFontObject(TitleFontObject)
@@ -24,6 +26,7 @@ TSharedRef<SWidget> UMainWindowWidget::RebuildWidget()
 void UMainWindowWidget::ReleaseSlateResources(bool bReleaseChildren)
 {
     Super::ReleaseSlateResources(bReleaseChildren);
+    bHasBroadcastShown = false;
     MySlate.Reset();
 }
 
@@ -35,6 +38,17 @@ void UMainWindowWidget::SynchronizeProperties()
     {
         MySlate->SetTitleFont(TitleFontObject, TitleFontSize);
         MySlate->SetIcon(IconObject);
+    }
+}
+
+void UMainWindowWidget::OnWidgetRebuilt()
+{
+    Super::OnWidgetRebuilt();
+
+    if (!bHasBroadcastShown && MySlate.IsValid())
+    {
+        bHasBroadcastShown = true;
+        OnShown.Broadcast();
     }
 }
 

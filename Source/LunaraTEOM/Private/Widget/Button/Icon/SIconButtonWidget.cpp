@@ -17,6 +17,10 @@ BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SIconButtonWidget::Construct(const FArguments& InArgs)
 {
     OnClicked = InArgs._OnClicked;
+    OnPressed = InArgs._OnPressed;
+    OnReleased = InArgs._OnReleased;
+    OnHovered = InArgs._OnHovered;
+    OnUnhovered = InArgs._OnUnhovered;
 
     ResolveStyle(InArgs._Style);
 
@@ -93,21 +97,41 @@ FReply SIconButtonWidget::HandleClick()
 void SIconButtonWidget::HandleHovered()
 {
     HoverSeq.Play(AsShared());
+
+    if (OnHovered.IsBound())
+    {
+        OnHovered.Execute();
+    }
 }
 
 void SIconButtonWidget::HandleUnhovered()
 {
     HoverSeq.Reverse();
+
+    if (OnUnhovered.IsBound())
+    {
+        OnUnhovered.Execute();
+    }
 }
 
 void SIconButtonWidget::HandlePressed()
 {
     PressSeq.Play(AsShared());
+
+    if (OnPressed.IsBound())
+    {
+        OnPressed.Execute();
+    }
 }
 
 void SIconButtonWidget::HandleReleased()
 {
     PressSeq.Reverse();
+
+    if (OnReleased.IsBound())
+    {
+        OnReleased.Execute();
+    }
 }
 
 float SIconButtonWidget::GetHoverAlpha() const

@@ -8,6 +8,7 @@
 class SMainWindowWidget;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWindowCloseClickedBP);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnWindowShownBP);
 
 UCLASS(meta=(DisplayName="Main Window", Category="Lunara|Slate"))
 class LUNARATEOM_API UMainWindowWidget : public UContentWidget
@@ -30,9 +31,13 @@ public:
     UPROPERTY(BlueprintAssignable, Category="Events")
     FOnWindowCloseClickedBP OnCloseClicked;
 
+    UPROPERTY(BlueprintAssignable, Category="Events")
+    FOnWindowShownBP OnShown;
+
     virtual TSharedRef<SWidget> RebuildWidget() override;
     virtual void ReleaseSlateResources(bool bReleaseChildren) override;
     virtual void SynchronizeProperties() override;
+    virtual void OnWidgetRebuilt() override;
 
 protected:
     virtual void OnSlotAdded(UPanelSlot* InSlot) override;
@@ -42,4 +47,5 @@ private:
     void HandleCloseClicked();
 
     TSharedPtr<SMainWindowWidget> MySlate;
+    bool bHasBroadcastShown = false;
 };
