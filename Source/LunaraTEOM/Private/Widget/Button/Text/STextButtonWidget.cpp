@@ -9,7 +9,11 @@ BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 void STextButtonWidget::Construct(const FArguments& InArgs)
 {
-    OnClicked = InArgs._OnClicked;
+    OnClicked   = InArgs._OnClicked;
+    OnPressed   = InArgs._OnPressed;
+    OnReleased  = InArgs._OnReleased;
+    OnHovered   = InArgs._OnHovered;
+    OnUnhovered = InArgs._OnUnhovered;
     ResolveStyle(InArgs._Style);
 
     LabelAttr         = InArgs._Label;
@@ -67,21 +71,25 @@ FReply STextButtonWidget::HandleClick()
 void STextButtonWidget::HandleHovered()
 {
     HoverSeq.Play(AsShared());
+    OnHovered.ExecuteIfBound();
 }
 
 void STextButtonWidget::HandleUnhovered()
 {
     HoverSeq.Reverse();
+    OnUnhovered.ExecuteIfBound();
 }
 
 void STextButtonWidget::HandlePressed()
 {
     PressSeq.Play(AsShared());
+    OnPressed.ExecuteIfBound();
 }
 
 void STextButtonWidget::HandleReleased()
 {
     PressSeq.Reverse();
+    OnReleased.ExecuteIfBound();
 }
 
 float STextButtonWidget::GetHoverAlpha() const

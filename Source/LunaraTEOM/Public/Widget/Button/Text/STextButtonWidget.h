@@ -25,6 +25,10 @@ public:
     {}
         SLATE_ATTRIBUTE(FText, Label)
         SLATE_EVENT(FOnSlateClicked, OnClicked)
+        SLATE_EVENT(FSimpleDelegate, OnPressed)
+        SLATE_EVENT(FSimpleDelegate, OnReleased)
+        SLATE_EVENT(FSimpleDelegate, OnHovered)
+        SLATE_EVENT(FSimpleDelegate, OnUnhovered)
         SLATE_ARGUMENT(const FLunaraTeomSlateStyle*, Style)
         SLATE_ARGUMENT(TSoftObjectPtr<UObject>, FontObject)
         SLATE_ARGUMENT(int32, FontSize)
@@ -53,6 +57,10 @@ private:
 
 private:
     FOnSlateClicked OnClicked;
+    FSimpleDelegate OnPressed;
+    FSimpleDelegate OnReleased;
+    FSimpleDelegate OnHovered;
+    FSimpleDelegate OnUnhovered;
 
     FButtonStyle ButtonStyle;
 

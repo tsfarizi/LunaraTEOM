@@ -6,6 +6,10 @@ TSharedRef<SWidget> UTextButtonWidget::RebuildWidget()
     SAssignNew(MySlate, STextButtonWidget)
         .Label(TAttribute<FText>::Create(TAttribute<FText>::FGetter::CreateUObject(this, &UTextButtonWidget::GetLabel)))
         .OnClicked(FOnSlateClicked::CreateUObject(this, &UTextButtonWidget::HandleSlateClicked))
+        .OnPressed(FSimpleDelegate::CreateUObject(this, &UTextButtonWidget::HandleSlatePressed))
+        .OnReleased(FSimpleDelegate::CreateUObject(this, &UTextButtonWidget::HandleSlateReleased))
+        .OnHovered(FSimpleDelegate::CreateUObject(this, &UTextButtonWidget::HandleSlateHovered))
+        .OnUnhovered(FSimpleDelegate::CreateUObject(this, &UTextButtonWidget::HandleSlateUnhovered))
         .FontObject(FontObject)
         .FontSize(FontSize);
     return MySlate.ToSharedRef();
@@ -13,8 +17,8 @@ TSharedRef<SWidget> UTextButtonWidget::RebuildWidget()
 
 void UTextButtonWidget::ReleaseSlateResources(bool bReleaseChildren)
 {
-	Super::ReleaseSlateResources(bReleaseChildren);
-	MySlate.Reset();
+    Super::ReleaseSlateResources(bReleaseChildren);
+    MySlate.Reset();
 }
 
 void UTextButtonWidget::SynchronizeProperties()
@@ -29,11 +33,31 @@ void UTextButtonWidget::SynchronizeProperties()
 
 FReply UTextButtonWidget::HandleSlateClicked()
 {
-	OnClicked.Broadcast();
-	return FReply::Handled();
+    OnClicked.Broadcast();
+    return FReply::Handled();
+}
+
+void UTextButtonWidget::HandleSlatePressed()
+{
+    OnPressed.Broadcast();
+}
+
+void UTextButtonWidget::HandleSlateReleased()
+{
+    OnReleased.Broadcast();
+}
+
+void UTextButtonWidget::HandleSlateHovered()
+{
+    OnHovered.Broadcast();
+}
+
+void UTextButtonWidget::HandleSlateUnhovered()
+{
+    OnUnhovered.Broadcast();
 }
 
 FText UTextButtonWidget::GetLabel() const
 {
-	return Label;
+    return Label;
 }
