@@ -1,17 +1,12 @@
 #include "Camera/CameraPawn.h"
+#include "Camera/CameraPawn_Internal.h"
 
 #include "Camera/CameraComponent.h" 
 #include "GameFramework/SpringArmComponent.h"
 #include "Engine/World.h"
 
-namespace
-{
-	constexpr float KINDA_SMALL_NUMBER_CM = 1.0e-3f;
-	inline bool IsVectorFinite(const FVector& V)
-	{
-		return FMath::IsFinite(V.X) && FMath::IsFinite(V.Y) && FMath::IsFinite(V.Z);
-	}
-}
+using CameraPawn::Private::IsVectorFinite;
+using CameraPawn::Private::KINDA_SMALL_NUMBER_CM;
 
 void ACameraPawn::Zoom(float AxisValue)
 {

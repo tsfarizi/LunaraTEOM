@@ -1,16 +1,11 @@
 #include "Camera/CameraPawn.h"
+#include "Camera/CameraPawn_Internal.h"
 
 #include "DrawDebugHelpers.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 
-namespace
-{
-	inline bool IsVectorFinite(const FVector& V)
-	{
-		return FMath::IsFinite(V.X) && FMath::IsFinite(V.Y) && FMath::IsFinite(V.Z);
-	}
-}
+using CameraPawn::Private::IsVectorFinite;
 
 bool ACameraPawn::GetCursorWorldPoint(FVector& OutPoint)
 {
