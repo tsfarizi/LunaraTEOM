@@ -24,6 +24,7 @@ Saved/
 .vs/
 *.VC.db
 *.VC.opendb
+*/ipch
 
 # Rider project files
 .idea/
