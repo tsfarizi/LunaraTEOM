@@ -63,17 +63,17 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Camera|Input")
 	void Pan(FVector2D AxisValue);
 
-	// [ADDED] Setter BP-callable agar node “Set …” muncul di Blueprint
+	//Setter BP-callable agar node “Set …” muncul di Blueprint
 	UFUNCTION(BlueprintCallable, Category="Camera|Input")
-	void SetDefaultInputMapping(UInputMappingContext* InContext);             // [ADDED]
+	void SetDefaultInputMapping(UInputMappingContext* InContext);
 	UFUNCTION(BlueprintCallable, Category="Camera|Input")
-	void SetZoomAction(UInputAction* InAction);                               // [ADDED]
+	void SetZoomAction(UInputAction* InAction);                  
 	UFUNCTION(BlueprintCallable, Category="Camera|Input")
-	void SetOrbitAction(UInputAction* InAction);                              // [ADDED]
+	void SetOrbitAction(UInputAction* InAction);                 
 	UFUNCTION(BlueprintCallable, Category="Camera|Input")
-	void SetPanAction(UInputAction* InAction);                                // [ADDED]
+	void SetPanAction(UInputAction* InAction);                   
 	UFUNCTION(BlueprintCallable, Category="Camera|Input")
-	void SetInputMappingPriority(int32 InPriority);                           // [ADDED]
+	void SetInputMappingPriority(int32 InPriority);              
 
 protected:
 	/** Root component - keeps explicit hierarchy Root -> SpringArm -> Camera. */
