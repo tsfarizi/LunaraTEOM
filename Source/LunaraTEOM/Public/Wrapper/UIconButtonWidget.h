@@ -18,24 +18,31 @@ class LUNARATEOM_API UIconButtonWidget : public UWidget
     GENERATED_BODY()
 
 public:
+    /** Asset that will be rendered inside the button as the icon texture or material. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance", meta = (AllowedClasses = "Texture2D,MaterialInterface"))
     TSoftObjectPtr<UObject> IconAsset;
 
+    /** Diameter in pixels used to size the circular icon button. */
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance", meta = (ClampMin = 16))
     float Diameter = 64.f;
 
+    /** Event fired when the button is clicked with a confirmed release. */
     UPROPERTY(BlueprintAssignable, Category = "Events")
     FOnIconButtonClickedBP OnClicked;
 
+    /** Event fired as soon as the button receives a press input. */
     UPROPERTY(BlueprintAssignable, Category = "Events")
     FOnIconButtonPressedBP OnPressed;
 
+    /** Event fired when the press input is released over the button. */
     UPROPERTY(BlueprintAssignable, Category = "Events")
     FOnIconButtonReleasedBP OnReleased;
 
+    /** Event fired when the pointer begins hovering the button. */
     UPROPERTY(BlueprintAssignable, Category = "Events")
     FOnIconButtonHoveredBP OnHovered;
 
+    /** Event fired when the pointer stops hovering the button. */
     UPROPERTY(BlueprintAssignable, Category = "Events")
     FOnIconButtonUnhoveredBP OnUnhovered;
 

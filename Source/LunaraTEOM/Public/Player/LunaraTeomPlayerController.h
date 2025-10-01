@@ -45,19 +45,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Input|Mode")
 	void SetInputModeUIOnly();
 
-	/**
-	 * Enables mouse click and hover events.
-	 * Useful when interacting with UI widgets or 3D actors via cursor.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input|Cursor")
-	bool bEnableMouseClickEvents = true;
+        /** Enables mouse click events so Slate widgets and actors can respond to presses. */
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input|Cursor")
+        bool bEnableMouseClickEvents = true;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input|Cursor")
-	bool bEnableMouseHoverEvents = true;
+        /** Enables mouse hover events for tooltips and hover-driven feedback. */
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input|Cursor")
+        bool bEnableMouseHoverEvents = true;
 
-	/**
-	 * Default hardware cursor icon (set in editor or Blueprint).
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input|Cursor")
-	TEnumAsByte<EMouseCursor::Type> DefaultCursor = EMouseCursor::Default;
+        /** Default hardware cursor icon (set in editor or Blueprint). */
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input|Cursor")
+        TEnumAsByte<EMouseCursor::Type> DefaultCursor = EMouseCursor::Default;
 };

@@ -96,9 +96,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Zoom", meta = (ClampMin = "100.0"))
 	float MaxArmLength = 2500.0f;
 
-	/** Zoom step in centimeters (cm) per wheel tick. Safe range: 25-250. Bigger steps feel snappier but reduce precision. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Zoom", meta = (ClampMin = "1.0"))
-	float ZoomStep = 120.0f;
+        /** Zoom step in centimeters (cm) per wheel tick. Safe range: 25-250. Bigger steps feel snappier but reduce precision. */
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Zoom", meta = (ClampMin = "1.0"))
+        float ZoomStep = 120.0f;
 
 	/** Optional inversion for zoom axis; set true to swap wheel direction. Side effect: affects all input devices uniformly. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Zoom")
@@ -144,45 +144,41 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Debug")
 	bool bDebug = false;
 
-	/** Mapping context applied via code. Fallback path allows loading IMC_CameraPawn without touching project settings. */
-	// [ADDED] BlueprintReadWrite supaya node “Set DefaultInputMapping” tersedia
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UInputMappingContext> DefaultInputMapping;
+        /** Mapping context applied via code. Fallback path allows loading IMC_CameraPawn without touching project settings. */
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
+        TObjectPtr<UInputMappingContext> DefaultInputMapping;
 
-	/** Soft path used when DefaultInputMapping is null. Example: /Game/Input/IMC_CameraPawn.IMC_CameraPawn */
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
-	FSoftObjectPath DefaultInputMappingPath;
+        /** Soft path used when DefaultInputMapping is null. Example: /Game/Input/IMC_CameraPawn.IMC_CameraPawn */
+        UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
+        FSoftObjectPath DefaultInputMappingPath;
 
-	/** Enhanced Input action driving Zoom(float). Expected to output 1D axis (mouse wheel). */
-	// [ADDED] BlueprintReadWrite supaya node “Set ZoomAction” tersedia
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UInputAction> ZoomAction;
+        /** Enhanced Input action driving Zoom(float). Expected to output 1D axis (mouse wheel). */
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
+        TObjectPtr<UInputAction> ZoomAction;
 
 	/** Soft path used when ZoomAction is null to load the asset dynamically. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
-	FSoftObjectPath ZoomActionPath;
+        FSoftObjectPath ZoomActionPath;
 
-	/** Enhanced Input action driving Orbit(FVector2D). Expected axis: X=MouseX, Y=MouseY. */
-	// [ADDED] BlueprintReadWrite supaya node “Set OrbitAction” tersedia
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UInputAction> OrbitAction;
+        /** Enhanced Input action driving Orbit(FVector2D). Expected axis: X=MouseX, Y=MouseY. */
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
+        TObjectPtr<UInputAction> OrbitAction;
 
 	/** Soft path used when OrbitAction is null to load the asset dynamically. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
-	FSoftObjectPath OrbitActionPath;
+        FSoftObjectPath OrbitActionPath;
 
-	/** Enhanced Input action driving Pan(FVector2D). Expected axis: screen-relative WASD/drag in cm/sec. */
-	// [ADDED] BlueprintReadWrite supaya node “Set PanAction” tersedia
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UInputAction> PanAction;
+        /** Enhanced Input action driving Pan(FVector2D). Expected axis: screen-relative WASD/drag in cm/sec. */
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
+        TObjectPtr<UInputAction> PanAction;
 
 	/** Soft path used when PanAction is null to load the asset dynamically. */
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Camera|Input", meta = (AllowPrivateAccess = "true"))
-	FSoftObjectPath PanActionPath;
+        FSoftObjectPath PanActionPath;
 
-	// [ADDED] Prioritas mapping (lebih tinggi menang)
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Input", meta = (ClampMin = "0"))
-	int32 InputMappingPriority = 0;
+        /** Priority applied when registering the mapping context; higher values win conflicts. */
+        UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera|Input", meta = (ClampMin = "0"))
+        int32 InputMappingPriority = 0;
 
 private:
 	/** Returns cursor world point, preferring hits then falling back to GroundZ plane; logs failure reasons. */
