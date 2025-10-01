@@ -56,6 +56,14 @@
 		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
 	},
 	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Camera\\CameraPawn_Internal.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
 		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Camera\\CameraPawn_Movement.cpp",
 		"arguments": [
 			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
@@ -80,7 +88,7 @@
 		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
 	},
 	{
-		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\SMainWindowWidget.cpp",
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\Button\\Icon\\SIconButtonWidget.cpp",
 		"arguments": [
 			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
 			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
@@ -88,7 +96,103 @@
 		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
 	},
 	{
-		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\STextButtonWidget.cpp",
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\Button\\Icon\\SIconButtonWidget_Layout.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\Button\\Icon\\SIconButtonWidget_Style.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\Button\\Text\\STextButtonWidget.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\Button\\Text\\STextButtonWidget_Layout.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\Button\\Text\\STextButtonWidget_Style.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\SBeveledBorder.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\SListBuildingContainerWidget.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\Window\\Main\\SMainWindowWidget.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\Window\\Main\\SMainWindowWidget_Layout.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\Window\\Main\\SMainWindowWidget_Style.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\Window\\Shared\\SWindowContentPanel.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Widget\\Window\\Shared\\SWindowTitleBar.cpp",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Private\\Wrapper\\UIconButtonWidget.cpp",
 		"arguments": [
 			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
 			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
@@ -136,6 +240,22 @@
 		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
 	},
 	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Public\\Widget\\Button\\Icon\\SIconButtonWidget.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Public\\Widget\\Button\\Text\\STextButtonWidget.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
 		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Public\\Widget\\SBeveledBorder.h",
 		"arguments": [
 			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
@@ -144,7 +264,7 @@
 		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
 	},
 	{
-		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Public\\Widget\\SMainWindowWidget.h",
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Public\\Widget\\SListBuildingContainerWidget.h",
 		"arguments": [
 			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
 			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
@@ -152,7 +272,31 @@
 		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
 	},
 	{
-		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Public\\Widget\\STextButtonWidget.h",
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Public\\Widget\\Window\\Main\\SMainWindowWidget.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Public\\Widget\\Window\\Shared\\SWindowContentPanel.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Public\\Widget\\Window\\Shared\\SWindowTitleBar.h",
+		"arguments": [
+			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Source\\LunaraTEOM\\Public\\Wrapper\\UIconButtonWidget.h",
 		"arguments": [
 			"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
 			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\LunaraTEOM.1.rsp"
