@@ -26,11 +26,11 @@ void SMainWindowWidget::BuildLayout()
         StyleRef = &FLunaraTeomSlateStyle::GetDefault();
     }
 
-    const FLinearColor DeepBlue = StyleRef->DeepBlue;
-    const FLinearColor MoonGold = StyleRef->MoonGold;
-    const FLinearColor TitleColor = StyleRef->HighlightGold;
-    const FLinearColor BaseGold = StyleRef->BaseGold;
-    const FLinearColor HigLightGold = StyleRef->HighlightGold;
+    const FLinearColor PrimaryColor = StyleRef->PrimaryColor;
+    const FLinearColor SecondaryColor = StyleRef->SecondaryColor;
+    const FLinearColor TitleColor = StyleRef->AccentColor;
+    const FLinearColor SurfaceColor = StyleRef->SurfaceColor;
+    const FLinearColor AccentColor = StyleRef->AccentColor;
 
     TSharedPtr<SWidget> LocalCachedContent = CachedContent;
 
@@ -49,7 +49,7 @@ void SMainWindowWidget::BuildLayout()
         .TitleColor(TitleColor)
         .TitleFont(TitleFont)
         .IconBrush(nullptr)
-        .BackgroundColor(DeepBlue)
+        .BackgroundColor(PrimaryColor)
         .OnCloseClicked(FSimpleDelegate::CreateSP(this, &SMainWindowWidget::HandleCloseButton));
     TitleBar->SetTitleColor(FSlateColor(TitleColor));
 
@@ -61,7 +61,7 @@ void SMainWindowWidget::BuildLayout()
         [
             SNew(SBorder)
             .BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-            .BorderBackgroundColor(MoonGold * 0.5f)
+            .BorderBackgroundColor(SecondaryColor * 0.5f)
             .Padding(FMargin(0.f, 0.f, 0.f, 1.f))
         ]
         + SOverlay::Slot()
@@ -87,7 +87,7 @@ void SMainWindowWidget::BuildLayout()
         .NotchDepth(12.f)
         .RightNotchCount(3)
         .LeftNotchCount(2)
-        .Color(DeepBlue)
+        .Color(PrimaryColor)
         .Padding(FMargin(8.f))
         [
             SNew(SBeveledBorder)
@@ -95,7 +95,7 @@ void SMainWindowWidget::BuildLayout()
             .NotchDepth(12.f)
             .RightNotchCount(3)
             .LeftNotchCount(2)
-            .Color(MoonGold * 0.9f)
+            .Color(SecondaryColor * 0.9f)
             .Padding(FMargin(6.f))
             [
                 SNew(SBeveledBorder)
@@ -103,7 +103,7 @@ void SMainWindowWidget::BuildLayout()
                 .NotchDepth(12.f)
                 .RightNotchCount(3)
                 .LeftNotchCount(2)
-                .Color(BaseGold)
+                .Color(SurfaceColor)
                 .Padding(FMargin(6.f))
                 [
                     SNew(SBeveledBorder)
@@ -111,7 +111,7 @@ void SMainWindowWidget::BuildLayout()
                     .NotchDepth(12.f)
                     .RightNotchCount(3)
                     .LeftNotchCount(2)
-                    .Color(HigLightGold)
+                    .Color(AccentColor)
                     .Padding(FMargin(6.f))
                     [
                         WindowOverlay

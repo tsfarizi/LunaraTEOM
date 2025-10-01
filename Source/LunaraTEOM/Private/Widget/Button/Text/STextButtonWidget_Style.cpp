@@ -32,7 +32,7 @@ void STextButtonWidget::ResolveStyle(const FLunaraTeomSlateStyle* InStyle)
         StyleRef = &FLunaraTeomSlateStyle::GetDefault();
     }
 
-    TextColor = StyleRef ? FSlateColor(StyleRef->DeepBlue) : FSlateColor(FLinearColor::White);
+    TextColor = StyleRef ? FSlateColor(StyleRef->PrimaryColor) : FSlateColor(FLinearColor::White);
 }
 
 void STextButtonWidget::RebuildLabelFont()
@@ -67,7 +67,7 @@ void STextButtonWidget::RebuildLabelFont()
 
 FLinearColor STextButtonWidget::GetInnerPanelColor() const
 {
-    const FLinearColor BaseColor = StyleRef ? StyleRef->HighlightGold : FLinearColor(0.85f, 0.65f, 0.30f);
+    const FLinearColor BaseColor = StyleRef ? StyleRef->AccentColor : FLinearColor(0.85f, 0.65f, 0.30f);
     const FLinearColor HoverColor = BaseColor * 1.12f;
     const FLinearColor PressColor = BaseColor * 0.8f;
 

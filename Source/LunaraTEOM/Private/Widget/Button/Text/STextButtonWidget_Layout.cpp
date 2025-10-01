@@ -16,9 +16,9 @@ BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 
 void STextButtonWidget::BuildLayout()
 {
-    const FLinearColor DeepBlue = StyleRef ? StyleRef->DeepBlue : FLinearColor(0.08f, 0.12f, 0.20f);
-    const FLinearColor MoonGold = StyleRef ? StyleRef->MoonGold : FLinearColor(0.72f, 0.54f, 0.23f);
-    const FLinearColor BaseGold = StyleRef ? StyleRef->BaseGold : FLinearColor(0.66f, 0.48f, 0.18f);
+    const FLinearColor PrimaryColor = StyleRef ? StyleRef->PrimaryColor : FLinearColor(0.08f, 0.12f, 0.20f);
+    const FLinearColor SecondaryColor = StyleRef ? StyleRef->SecondaryColor : FLinearColor(0.72f, 0.54f, 0.23f);
+    const FLinearColor SurfaceColor = StyleRef ? StyleRef->SurfaceColor : FLinearColor(0.66f, 0.48f, 0.18f);
 
     constexpr float OuterBevelValue     = 8.f;
     constexpr float OuterNotchDepth     = 10.f;
@@ -51,21 +51,21 @@ void STextButtonWidget::BuildLayout()
                 .Bevel(OuterBevelValue)
                 .NotchDepth(OuterNotchDepth)
                 .NotchHeight(OuterNotchHeight)
-                .Color(DeepBlue)
+                .Color(PrimaryColor)
                 .Padding(FMargin(4.f))
                 [
                     SNew(SBeveledBorder)
                     .Bevel(MidBevelValue)
                     .NotchDepth(MidNotchDepth)
                     .NotchHeight(MidNotchHeight)
-                    .Color(MoonGold * 0.9f)
+                    .Color(SecondaryColor * 0.9f)
                     .Padding(FMargin(2.f))
                     [
                         SNew(SBeveledBorder)
                         .Bevel(InnerBevelValue)
                         .NotchDepth(InnerNotchDepth)
                         .NotchHeight(InnerNotchHeight)
-                        .Color(BaseGold)
+                        .Color(SurfaceColor)
                         .Padding(FMargin(4.f))
                         [
                             SAssignNew(InnerPanel, SBeveledBorder)

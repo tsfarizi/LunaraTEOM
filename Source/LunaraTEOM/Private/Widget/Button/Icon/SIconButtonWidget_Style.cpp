@@ -25,9 +25,9 @@ void SIconButtonWidget::ResolveStyle(const FLunaraTeomSlateStyle* InStyle)
         StyleRef = &FLunaraTeomSlateStyle::GetDefault();
     }
 
-    OuterStrokeBase = StyleRef->HighlightGold;
-    InnerStrokeBase = StyleRef->MoonGold;
-    FillBase        = StyleRef->DeepBlue;
+    OuterStrokeBase = StyleRef->AccentColor;
+    InnerStrokeBase = StyleRef->SecondaryColor;
+    FillBase        = StyleRef->PrimaryColor;
 }
 
 FLinearColor SIconButtonWidget::GetOuterStrokeColor() const
