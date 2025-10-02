@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Widget/SListBuildingContainerWidget.h"
 
 #include "UI/LunaraTeomSlateWidgetStyle.h"
@@ -10,9 +7,12 @@
 #include "Styling/CoreStyle.h"
 #include "Styling/SlateTypes.h"
 #include "Layout/Clipping.h"
+
 #include "Widgets/Layout/SBox.h"
-#include "Widgets/Layout/SVerticalBox.h"
-#include "Widgets/Layout/SHorizontalBox.h"
+#include "Widgets/Layout/SScrollBox.h"
+
+#include "Widgets/Layout/SScrollBox.h"     
+
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Text/STextBlock.h"
@@ -30,6 +30,7 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
 
     const FLinearColor BackgroundColor(Style.PrimaryColor.R, Style.PrimaryColor.G, Style.PrimaryColor.B, 0.1f);
 
+    // Kontainer utama isi (custom content + baris tombol)
     TSharedRef<SVerticalBox> ContentContainer = SNew(SVerticalBox)
         + SVerticalBox::Slot()
         .AutoHeight()
@@ -48,6 +49,7 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
             .AllowOverscroll(EAllowOverscroll::No)
             .ConsumeMouseWheel(EConsumeMouseWheel::WhenScrollingPossible)
             .Clipping(EWidgetClipping::ClipToBounds)
+            + SScrollBox::Slot()
             [
                 SAssignNew(ButtonListContainer, SHorizontalBox)
             ]
