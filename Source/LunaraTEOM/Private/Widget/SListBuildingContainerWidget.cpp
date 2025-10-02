@@ -30,21 +30,18 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
 {
     const FLunaraTeomSlateStyle& Style = FLunaraTeomSlateStyle::GetDefault();
 
-    FLinearColor OuterBorderColor = Style.AccentColor;
-    OuterBorderColor.A = 0.45f;
+    const FLinearColor OuterBorderColor = Style.AccentColor;
 
-    FLinearColor InnerBorderColor = FLinearColor::LerpUsingHSV(Style.PrimaryColor, FLinearColor::White, 0.2f);
-    InnerBorderColor.A = 0.35f;
+    const FLinearColor InnerBorderBase = FLinearColor::LerpUsingHSV(Style.PrimaryColor, Style.HighlightColor, 0.2f);
+    const FLinearColor InnerBorderColor = InnerBorderBase.CopyWithNewOpacity(0.65f);
 
-    FLinearColor BackgroundColor = FLinearColor::LerpUsingHSV(Style.PrimaryColor, FLinearColor::White, 0.65f);
-    BackgroundColor.A = 0.18f;
+    const FLinearColor BackgroundColor = Style.PrimaryColor.CopyWithNewOpacity(0.18f);
 
-    const FLinearColor GlassTintColor = BackgroundColor.CopyWithNewOpacity(0.16f);
-    const FLinearColor GlassSheenColor(1.f, 1.f, 1.f, 0.28f);
+    const FLinearColor GlassTintColor = Style.BackgroundColor.CopyWithNewOpacity(0.16f);
+    const FLinearColor GlassSheenColor = Style.HighlightColor.CopyWithNewOpacity(0.28f);
 
     const FVector4 GlassCornerRadius(22.f, 22.f, 22.f, 22.f);
 
-    // Kontainer utama isi (custom content + baris tombol)
     TSharedRef<SVerticalBox> ContentContainer = SNew(SVerticalBox)
         + SVerticalBox::Slot()
         .AutoHeight()
