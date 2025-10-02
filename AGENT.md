@@ -92,6 +92,11 @@ ci:
 * Do not alter engine plugins included via association; introduce new optional plugins by editing `LunaraTEOM.uproject` only when build-tested on Win64.
 * Maintain constructor defaults for camera movement to keep Enhanced Input tuning predictable.
 
+## UI Color Guidelines
+* Always reference existing colors exposed by the UI style system (e.g., the palette defined alongside `PrimaryColor`, `HighlightColor`, and related fields) when styling widgets or materials.
+* Do **not** hardcode new color values directly inside edited or newly created files; instead, extend the shared UI color definition asset/module if an additional color is absolutely required, and reference it from there.
+* When adding new colors to the palette, document them in the centralized style settings so other contributors can reuse them consistently.
+
 ## Data & Asset Hygiene
 * `.gitignore` already excludes `Binaries/`, `DerivedDataCache/`, `Intermediate/`, and packaged builds—keep these directories clean before commits.
 * Large binary assets (`*.uasset`, `*.umap`) should remain under Git LFS if adopted; coordinate before enabling to avoid history rewrite.
