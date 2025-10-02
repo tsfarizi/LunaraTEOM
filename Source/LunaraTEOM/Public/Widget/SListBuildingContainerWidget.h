@@ -7,6 +7,10 @@
 
 #include "Widget/ListBuildingButtonItem.h"
 
+class SBeveledBorder;
+class SScrollBox;
+class SHorizontalBox;
+
 /**
  *
  */
@@ -29,10 +33,11 @@ public:
     const TArray<FListBuildingButtonItem>& GetButtonItems() const { return ButtonItems; }
 
 private:
-    TSharedPtr<class SBorder> ContentBorder;
+    TSharedPtr<class SBeveledBorder> ContentBorder;
     TSharedPtr<SWidget> CachedContent;
     TSharedPtr<class SBox> CustomContentSlot;
-    TSharedPtr<class SVerticalBox> ButtonListContainer;
+    TSharedPtr<class SScrollBox> ButtonScrollBox;
+    TSharedPtr<class SHorizontalBox> ButtonListContainer;
     TArray<FListBuildingButtonItem> ButtonItems;
     TArray<TSharedPtr<FSlateBrush>> ButtonIconBrushes;
 

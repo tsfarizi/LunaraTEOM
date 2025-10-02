@@ -13,9 +13,6 @@ class LUNARATEOM_API UListBuildingContainerWidget : public UContentWidget
     GENERATED_BODY()
 
 public:
-    // Slot konten yang dapat diisi melalui WBP.
-    virtual UPanelSlot* GetContentSlot() const override;
-
     virtual TSharedRef<SWidget> RebuildWidget() override;
     virtual void ReleaseSlateResources(bool bReleaseChildren) override;
     virtual void SynchronizeProperties() override;

@@ -1,11 +1,6 @@
 #include "Wrapper/UListBuildingContainerWidget.h"
 #include "Widget/SListBuildingContainerWidget.h"
 
-UPanelSlot* UListBuildingContainerWidget::GetContentSlot() const
-{
-    return ContentSlot;
-}
-
 TSharedRef<SWidget> UListBuildingContainerWidget::RebuildWidget()
 {
     SAssignNew(MySlate, SListBuildingContainerWidget);

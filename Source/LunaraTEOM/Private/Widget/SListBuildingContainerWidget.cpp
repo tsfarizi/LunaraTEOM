@@ -9,7 +9,7 @@
 #include "SlateOptMacros.h"
 #include "Styling/CoreStyle.h"
 #include "Styling/SlateTypes.h"
-#include "Widgets/Layout/SBorder.h"
+#include "Layout/Clipping.h"
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SVerticalBox.h"
 #include "Widgets/Layout/SHorizontalBox.h"
@@ -28,44 +28,56 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
     FLinearColor InnerBorderColor = Style.PrimaryColor;
     InnerBorderColor.A = 0.85f;
 
-    FLinearColor BackgroundColor = FLinearColor::LerpUsingHSV(Style.PrimaryColor, FLinearColor::White, 0.2f);
-    BackgroundColor.A = 0.7f;
+    const FLinearColor BackgroundColor(Style.PrimaryColor.R, Style.PrimaryColor.G, Style.PrimaryColor.B, 0.1f);
 
-    SAssignNew(ContentBorder, SBorder)
-        .Padding(FMargin(16.f))
-        .BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-        .BorderBackgroundColor(BackgroundColor)
+    TSharedRef<SVerticalBox> ContentContainer = SNew(SVerticalBox)
+        + SVerticalBox::Slot()
+        .AutoHeight()
         [
-            SNew(SVerticalBox)
-            + SVerticalBox::Slot()
-            .AutoHeight()
+            SAssignNew(CustomContentSlot, SBox)
+            .Visibility(EVisibility::Collapsed)
+        ]
+        + SVerticalBox::Slot()
+        .AutoHeight()
+        .HAlign(HAlign_Fill)
+        .Padding(FMargin(0.f, 8.f, 0.f, 0.f))
+        [
+            SAssignNew(ButtonScrollBox, SScrollBox)
+            .Orientation(EOrientation::Orient_Horizontal)
+            .ScrollBarVisibility(EVisibility::Collapsed)
+            .AllowOverscroll(EAllowOverscroll::No)
+            .ConsumeMouseWheel(EConsumeMouseWheel::WhenScrollingPossible)
+            .Clipping(EWidgetClipping::ClipToBounds)
             [
-                SAssignNew(CustomContentSlot, SBox)
-                .Visibility(EVisibility::Collapsed)
+                SAssignNew(ButtonListContainer, SHorizontalBox)
             ]
-            + SVerticalBox::Slot()
-            .AutoHeight()
-            .Padding(FMargin(0.f, 12.f, 0.f, 0.f))
-            [
-                SAssignNew(ButtonListContainer, SVerticalBox)
-            ]
+        ];
+
+    SAssignNew(ContentBorder, SBeveledBorder)
+        .Bevel(6.f)
+        .NotchDepth(4.f)
+        .NotchHeight(10.f)
+        .Color(BackgroundColor)
+        .Padding(FMargin(12.f, 12.f, 12.f, 16.f))
+        [
+            ContentContainer
         ];
 
     ChildSlot
     [
         SNew(SBeveledBorder)
-        .Bevel(12.f)
-        .NotchDepth(12.f)
-        .NotchHeight(24.f)
+        .Bevel(10.f)
+        .NotchDepth(8.f)
+        .NotchHeight(18.f)
         .RightNotchCount(1)
         .LeftNotchCount(1)
         .Color(OuterBorderColor)
         .Padding(FMargin(4.f))
         [
             SNew(SBeveledBorder)
-            .Bevel(10.f)
-            .NotchDepth(10.f)
-            .NotchHeight(20.f)
+            .Bevel(8.f)
+            .NotchDepth(6.f)
+            .NotchHeight(14.f)
             .RightNotchCount(1)
             .LeftNotchCount(1)
             .Color(InnerBorderColor)
@@ -178,11 +190,11 @@ void SListBuildingContainerWidget::RebuildButtonList()
             .ShadowOffset(FVector2D(1.f, 1.f))
         ];
 
-        const float TopPadding = ItemIndex > 0 ? 8.f : (bHasCustomContent ? 12.f : 0.f);
+        const float LeftPadding = ItemIndex > 0 ? 12.f : (bHasCustomContent ? 8.f : 0.f);
 
         ButtonListContainer->AddSlot()
-        .AutoHeight()
-        .Padding(FMargin(0.f, TopPadding, 0.f, 0.f))
+        .AutoWidth()
+        .Padding(FMargin(LeftPadding, 0.f, 0.f, 0.f))
         [
             SNew(SButton)
             .ButtonStyle(&FCoreStyle::Get().GetWidgetStyle<FButtonStyle>("Button"))
@@ -192,6 +204,11 @@ void SListBuildingContainerWidget::RebuildButtonList()
                 ButtonContent
             ]
         ];
+    }
+
+    if (ButtonScrollBox.IsValid())
+    {
+        ButtonScrollBox->ScrollToStart();
     }
 }
 
