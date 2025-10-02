@@ -7,28 +7,42 @@
 #include "Styling/CoreStyle.h"
 #include "Styling/SlateTypes.h"
 #include "Layout/Clipping.h"
-
-#include "Widgets/Layout/SBox.h"
-#include "Widgets/Layout/SScrollBox.h"
-
-#include "Widgets/Layout/SScrollBox.h"     
+#include "Brushes/SlateColorBrush.h"
 
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Images/SImage.h"
-#include "Widgets/Text/STextBlock.h"
+#include "Widgets/Layout/SBackgroundBlur.h"
+#include "Widgets/Layout/SBorder.h"
+#include "Widgets/Layout/SBox.h"
+#include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/SNullWidget.h"
+#include "Widgets/SOverlay.h"
+#include "Widgets/Text/STextBlock.h"
+
+namespace ListBuildingContainerWidgetPrivate
+{
+    static const FSlateColorBrush GlassTintBrush(FLinearColor(1.f, 1.f, 1.f, 0.08f));
+    static const FSlateColorBrush GlassSheenBrush(FLinearColor(1.f, 1.f, 1.f, 0.18f));
+}
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
 {
     const FLunaraTeomSlateStyle& Style = FLunaraTeomSlateStyle::GetDefault();
 
-    const FLinearColor OuterBorderColor = Style.AccentColor;
+    FLinearColor OuterBorderColor = Style.AccentColor;
+    OuterBorderColor.A = 0.45f;
 
-    FLinearColor InnerBorderColor = Style.PrimaryColor;
-    InnerBorderColor.A = 0.85f;
+    FLinearColor InnerBorderColor = FLinearColor::LerpUsingHSV(Style.PrimaryColor, FLinearColor::White, 0.2f);
+    InnerBorderColor.A = 0.35f;
 
-    const FLinearColor BackgroundColor(Style.PrimaryColor.R, Style.PrimaryColor.G, Style.PrimaryColor.B, 0.1f);
+    FLinearColor BackgroundColor = FLinearColor::LerpUsingHSV(Style.PrimaryColor, FLinearColor::White, 0.65f);
+    BackgroundColor.A = 0.18f;
+
+    const FLinearColor GlassTintColor = BackgroundColor.CopyWithNewOpacity(0.16f);
+    const FLinearColor GlassSheenColor(1.f, 1.f, 1.f, 0.28f);
+
+    const FVector4 GlassCornerRadius(22.f, 22.f, 22.f, 22.f);
 
     // Kontainer utama isi (custom content + baris tombol)
     TSharedRef<SVerticalBox> ContentContainer = SNew(SVerticalBox)
@@ -55,14 +69,51 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
             ]
         ];
 
+    TSharedRef<SOverlay> GlassSurface = SNew(SOverlay)
+        + SOverlay::Slot()
+        [
+            SNew(SImage)
+            .Image(&ListBuildingContainerWidgetPrivate::GlassTintBrush)
+            .ColorAndOpacity(GlassTintColor)
+        ]
+        + SOverlay::Slot()
+        .HAlign(HAlign_Fill)
+        .VAlign(VAlign_Top)
+        [
+            SNew(SBox)
+            .HeightOverride(72.f)
+            [
+                SNew(SImage)
+                .Image(&ListBuildingContainerWidgetPrivate::GlassSheenBrush)
+                .ColorAndOpacity(GlassSheenColor)
+            ]
+        ]
+        + SOverlay::Slot()
+        [
+            SNew(SBorder)
+            .Padding(FMargin(12.f, 10.f, 12.f, 16.f))
+            .BorderImage(FCoreStyle::Get().GetBrush("NoBrush"))
+            [
+                ContentContainer
+            ]
+        ];
+
     SAssignNew(ContentBorder, SBeveledBorder)
         .Bevel(6.f)
         .NotchDepth(4.f)
         .NotchHeight(10.f)
         .Color(BackgroundColor)
-        .Padding(FMargin(12.f, 12.f, 12.f, 16.f))
+        .Padding(FMargin(10.f, 10.f, 10.f, 14.f))
         [
-            ContentContainer
+            SNew(SBackgroundBlur)
+            .BlurStrength(12.f)
+            .BlurRadius(32)
+            .bApplyAlphaToBlur(true)
+            .CornerRadius(GlassCornerRadius)
+            .LowQualityFallbackBrush(&ListBuildingContainerWidgetPrivate::GlassTintBrush)
+            [
+                GlassSurface
+            ]
         ];
 
     ChildSlot
