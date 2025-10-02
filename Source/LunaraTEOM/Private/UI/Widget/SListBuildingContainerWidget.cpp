@@ -8,6 +8,7 @@
 #include "Styling/SlateTypes.h"
 #include "Layout/Clipping.h"
 #include "Brushes/SlateColorBrush.h"
+#include "Brushes/SlateRoundedBoxBrush.h"
 
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Images/SImage.h"
@@ -21,8 +22,12 @@
 
 namespace ListBuildingContainerWidgetPrivate
 {
-    static const FSlateColorBrush GlassTintBrush(FLinearColor(1.f, 1.f, 1.f, 0.08f));
-    static const FSlateColorBrush GlassSheenBrush(FLinearColor(1.f, 1.f, 1.f, 0.18f));
+    static const FVector4 GlassCornerRadius(22.f, 22.f, 22.f, 22.f);
+    static const FSlateRoundedBoxBrush GlassTintBrush(FLinearColor::White, GlassCornerRadius);
+    static const FSlateRoundedBoxBrush GlassSheenBrush(
+        FLinearColor::White,
+        FVector4(22.f, 22.f, 6.f, 6.f)
+    );
 }
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
@@ -30,17 +35,15 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
 {
     const FLunaraTeomSlateStyle& Style = FLunaraTeomSlateStyle::GetDefault();
 
-    const FLinearColor OuterBorderColor = Style.AccentColor;
+    const FLinearColor OuterBorderColor = Style.AccentColor.CopyWithNewOpacity(0.16f);
 
     const FLinearColor InnerBorderBase = FLinearColor::LerpUsingHSV(Style.PrimaryColor, Style.HighlightColor, 0.2f);
-    const FLinearColor InnerBorderColor = InnerBorderBase.CopyWithNewOpacity(0.65f);
+    const FLinearColor InnerBorderColor = InnerBorderBase.CopyWithNewOpacity(0.1f);
 
-    const FLinearColor BackgroundColor = Style.PrimaryColor.CopyWithNewOpacity(0.18f);
+    const FLinearColor BackgroundColor = Style.BackgroundColor.CopyWithNewOpacity(0.f);
 
-    const FLinearColor GlassTintColor = Style.BackgroundColor.CopyWithNewOpacity(0.16f);
-    const FLinearColor GlassSheenColor = Style.HighlightColor.CopyWithNewOpacity(0.28f);
-
-    const FVector4 GlassCornerRadius(22.f, 22.f, 22.f, 22.f);
+    const FLinearColor GlassTintColor = Style.BackgroundColor.CopyWithNewOpacity(0.36f);
+    const FLinearColor GlassSheenColor = Style.HighlightColor.CopyWithNewOpacity(0.48f);
 
     TSharedRef<SVerticalBox> ContentContainer = SNew(SVerticalBox)
         + SVerticalBox::Slot()
@@ -103,10 +106,10 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
         .Padding(FMargin(10.f, 10.f, 10.f, 14.f))
         [
             SNew(SBackgroundBlur)
-            .BlurStrength(12.f)
-            .BlurRadius(32)
+            .BlurStrength(18.f)
+            .BlurRadius(64)
             .bApplyAlphaToBlur(true)
-            .CornerRadius(GlassCornerRadius)
+            .CornerRadius(ListBuildingContainerWidgetPrivate::GlassCornerRadius)
             .LowQualityFallbackBrush(&ListBuildingContainerWidgetPrivate::GlassTintBrush)
             [
                 GlassSurface
