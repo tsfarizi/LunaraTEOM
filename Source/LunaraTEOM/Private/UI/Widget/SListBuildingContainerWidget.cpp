@@ -35,15 +35,19 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
 {
     const FLunaraTeomSlateStyle& Style = FLunaraTeomSlateStyle::GetDefault();
 
-    const FLinearColor OuterBorderColor = Style.AccentColor;
+    const FLinearColor OuterBorderColor = Style.AccentColor.CopyWithNewOpacity(0.32f);
 
     const FLinearColor InnerBorderBase = FLinearColor::LerpUsingHSV(Style.PrimaryColor, Style.HighlightColor, 0.2f);
-    const FLinearColor InnerBorderColor = InnerBorderBase.CopyWithNewOpacity(0.1f);
+    const FLinearColor InnerBorderColor = InnerBorderBase.CopyWithNewOpacity(0.12f);
 
-    const FLinearColor BackgroundColor = Style.PrimaryColor.CopyWithNewOpacity(0.18f);
+    const FLinearColor GlassBaseColor = Style.BackgroundColor.CopyWithNewOpacity(0.18f);
+    const FLinearColor GlassBackdropColor = Style.BackgroundColor.CopyWithNewOpacity(0.08f);
 
-    const FLinearColor GlassTintColor = Style.BackgroundColor.CopyWithNewOpacity(0.16f);
-    const FLinearColor GlassSheenColor = Style.HighlightColor.CopyWithNewOpacity(0.28f);
+    const FMargin OuterBorderRimPadding(1.5f);
+    const FLinearColor OuterBorderRimColor = Style.HighlightColor.CopyWithNewOpacity(0.22f);
+
+    const FLinearColor GlassTintColor = Style.BackgroundColor.CopyWithNewOpacity(0.12f);
+    const FLinearColor GlassSheenColor = Style.HighlightColor.CopyWithNewOpacity(0.35f);
 
     const FVector4 GlassCornerRadius(22.f, 22.f, 22.f, 22.f);
 
@@ -76,7 +80,7 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
         [
             SNew(SImage)
             .Image(&ListBuildingContainerWidgetPrivate::GlassTintBrush)
-            .ColorAndOpacity(GlassTintColor)
+            .ColorAndOpacity(GlassBackdropColor)
         ]
         + SOverlay::Slot()
         .HAlign(HAlign_Fill)
@@ -96,7 +100,17 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
             .Padding(FMargin(12.f, 10.f, 12.f, 16.f))
             .BorderImage(FCoreStyle::Get().GetBrush("NoBrush"))
             [
-                ContentContainer
+                SNew(SOverlay)
+                + SOverlay::Slot()
+                [
+                    SNew(SImage)
+                    .Image(&ListBuildingContainerWidgetPrivate::GlassTintBrush)
+                    .ColorAndOpacity(GlassTintColor)
+                ]
+                + SOverlay::Slot()
+                [
+                    ContentContainer
+                ]
             ]
         ];
 
