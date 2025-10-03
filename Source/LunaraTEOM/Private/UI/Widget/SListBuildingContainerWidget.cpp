@@ -35,15 +35,17 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
 {
     const FLunaraTeomSlateStyle& Style = FLunaraTeomSlateStyle::GetDefault();
 
-    const FLinearColor OuterBorderColor = Style.AccentColor.CopyWithNewOpacity(0.16f);
+    const FLinearColor OuterBorderColor = Style.AccentColor;
 
     const FLinearColor InnerBorderBase = FLinearColor::LerpUsingHSV(Style.PrimaryColor, Style.HighlightColor, 0.2f);
     const FLinearColor InnerBorderColor = InnerBorderBase.CopyWithNewOpacity(0.1f);
 
-    const FLinearColor BackgroundColor = Style.BackgroundColor.CopyWithNewOpacity(0.f);
+    const FLinearColor BackgroundColor = Style.PrimaryColor.CopyWithNewOpacity(0.18f);
 
-    const FLinearColor GlassTintColor = Style.BackgroundColor.CopyWithNewOpacity(0.36f);
-    const FLinearColor GlassSheenColor = Style.HighlightColor.CopyWithNewOpacity(0.48f);
+    const FLinearColor GlassTintColor = Style.BackgroundColor.CopyWithNewOpacity(0.16f);
+    const FLinearColor GlassSheenColor = Style.HighlightColor.CopyWithNewOpacity(0.28f);
+
+    const FVector4 GlassCornerRadius(22.f, 22.f, 22.f, 22.f);
 
     TSharedRef<SVerticalBox> ContentContainer = SNew(SVerticalBox)
         + SVerticalBox::Slot()
@@ -102,7 +104,7 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
         .Bevel(6.f)
         .NotchDepth(4.f)
         .NotchHeight(10.f)
-        .Color(BackgroundColor)
+        .Color(GlassBaseColor)
         .Padding(FMargin(10.f, 10.f, 10.f, 14.f))
         [
             SNew(SBackgroundBlur)
@@ -127,16 +129,32 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
         .Color(OuterBorderColor)
         .Padding(FMargin(4.f))
         [
-            SNew(SBeveledBorder)
-            .Bevel(8.f)
-            .NotchDepth(6.f)
-            .NotchHeight(14.f)
-            .RightNotchCount(1)
-            .LeftNotchCount(1)
-            .Color(InnerBorderColor)
-            .Padding(FMargin(6.f))
+            SNew(SOverlay)
+            + SOverlay::Slot()
+            .Padding(OuterBorderRimPadding)
             [
-                ContentBorder.ToSharedRef()
+                SNew(SBeveledBorder)
+                .Bevel(9.f)
+                .NotchDepth(7.f)
+                .NotchHeight(16.f)
+                .RightNotchCount(1)
+                .LeftNotchCount(1)
+                .Color(OuterBorderRimColor)
+            ]
+            + SOverlay::Slot()
+            .Padding(FMargin(2.f))
+            [
+                SNew(SBeveledBorder)
+                .Bevel(8.f)
+                .NotchDepth(6.f)
+                .NotchHeight(14.f)
+                .RightNotchCount(1)
+                .LeftNotchCount(1)
+                .Color(InnerBorderColor)
+                .Padding(FMargin(6.f))
+                [
+                    ContentBorder.ToSharedRef()
+                ]
             ]
         ]
     ];
