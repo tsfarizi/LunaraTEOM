@@ -20,41 +20,32 @@ Saved/
 *.pidb
 *.sln.iml
 
-# Visual Studio files
 .vs/
 *.VC.db
 *.VC.opendb
 */ipch
 
-# Rider project files
 .idea/
 
-# Backup and crash reports
 *.dmp
 *.pdb
 *.backup
 
-# Compiled source files
 *.dll
 *.exe
 *.app
 *.so
 *.dylib
 
-# Ignore system files
+
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Plugin intermediates
+
 Plugins/*/Intermediate/
 Plugins/*/Binaries/
 
-# Config files generated locally (optional, keep if needed for team)
-# DefaultGame.ini etc. biasanya di-commit, jadi hati-hati jangan ignore semua Config/
-#Config/
-
-# Ignore build artifacts of packaged games
 WindowsNoEditor/
 LinuxNoEditor/
 MacNoEditor/
@@ -65,13 +56,11 @@ HTML5/
 IOS/
 TVOS/
 
-# Ignore Unreal AutomationTool artifacts
 AutomationTool/
 Engine/Programs/AutomationTool/Saved/
 
-# Ignore DerivedDataCache (very heavy!)
 Engine/DerivedDataCache/
 
-# If you use Git LFS, track binary assets:
-# git lfs track "*.uasset"
-# git lfs track "*.umap"
+Scripts/
+
+Content/

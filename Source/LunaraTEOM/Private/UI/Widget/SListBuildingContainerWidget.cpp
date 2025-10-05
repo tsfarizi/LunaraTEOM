@@ -20,6 +20,10 @@
 #include "Widgets/SOverlay.h"
 #include "Widgets/Text/STextBlock.h"
 
+#include "Framework/Application/SlateApplication.h"
+#include "Widgets/Layout/SScaleBox.h"
+#include "InputCoreTypes.h"
+
 namespace ListBuildingContainerWidgetPrivate
 {
     static const FVector4 GlassCornerRadius(22.f, 22.f, 22.f, 22.f);
@@ -63,15 +67,24 @@ void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
         .HAlign(HAlign_Fill)
         .Padding(FMargin(0.f, 8.f, 0.f, 0.f))
         [
-            SAssignNew(ButtonScrollBox, SScrollBox)
-            .Orientation(EOrientation::Orient_Horizontal)
-            .ScrollBarVisibility(EVisibility::Collapsed)
-            .AllowOverscroll(EAllowOverscroll::No)
-            .ConsumeMouseWheel(EConsumeMouseWheel::WhenScrollingPossible)
-            .Clipping(EWidgetClipping::ClipToBounds)
-            + SScrollBox::Slot()
+            SAssignNew(ScrollInteractionLayer, SBorder)
+            .Padding(FMargin(0.f))
+            .BorderImage(FCoreStyle::Get().GetBrush("NoBrush"))
+            .OnMouseButtonDown(this, &SListBuildingContainerWidget::HandleScrollAreaMouseButtonDown)
+            .OnMouseButtonUp(this, &SListBuildingContainerWidget::HandleScrollAreaMouseButtonUp)
+            .OnMouseMove(this, &SListBuildingContainerWidget::HandleScrollAreaMouseMove)
             [
-                SAssignNew(ButtonListContainer, SHorizontalBox)
+                SAssignNew(ButtonScrollBox, SScrollBox)
+                .Orientation(EOrientation::Orient_Horizontal)
+                .ScrollBarVisibility(EVisibility::Collapsed)
+                .AllowOverscroll(EAllowOverscroll::No)
+                .ConsumeMouseWheel(EConsumeMouseWheel::WhenScrollingPossible)
+                .AnimateWheelScrolling(true)
+                .Clipping(EWidgetClipping::ClipToBounds)
+                + SScrollBox::Slot()
+                [
+                    SAssignNew(ButtonListContainer, SHorizontalBox)
+                ]
             ]
         ];
 
@@ -226,10 +239,52 @@ void SListBuildingContainerWidget::RebuildButtonList()
     }
 
     const FLunaraTeomSlateStyle& Style = FLunaraTeomSlateStyle::GetDefault();
-    const bool bHasCustomContent = CachedContent.IsValid();
-
     ButtonListContainer->ClearChildren();
     ButtonIconBrushes.Reset(ButtonItems.Num());
+
+    constexpr float ButtonBaseExtent = 116.f;
+    const FMargin ButtonContentPadding(12.f);
+    const float ButtonHorizontalPadding = ButtonContentPadding.GetTotalSpaceAlong<Orient_Horizontal>();
+    const float IconBoxSize = 48.f;
+    const FLinearColor ButtonFillColor(0.929f, 0.780f, 0.216f, 0.95f);
+    const FLinearColor ButtonTintOverlay(0.929f, 0.780f, 0.216f, 0.18f);
+    const FLinearColor ButtonSheenColor = Style.HighlightColor.CopyWithNewOpacity(0.2f);
+    const float MinSlotSpacing = 20.f;
+
+    const TAttribute<FOptionalSize> ButtonExtentAttribute = TAttribute<FOptionalSize>::Create(TAttribute<FOptionalSize>::FGetter::CreateSP(this, &SListBuildingContainerWidget::GetButtonExtent));
+    const TAttribute<FOptionalSize> LabelWidthAttribute = TAttribute<FOptionalSize>::Create(TAttribute<FOptionalSize>::FGetter::CreateLambda([this, ButtonBaseExtent, ButtonHorizontalPadding]() -> FOptionalSize
+    {
+        const FOptionalSize ExtentOptional = GetButtonExtent();
+        const float ExtentValue = ExtentOptional.IsSet() ? FMath::Max(1.f, ExtentOptional.Get()) : ButtonBaseExtent;
+        return FOptionalSize(FMath::Max(1.f, ExtentValue - ButtonHorizontalPadding));
+    }));
+
+    const FOptionalSize ButtonExtentOptional = GetButtonExtent();
+    const float ButtonExtentValue = ButtonExtentOptional.IsSet() ? FMath::Max(1.f, ButtonExtentOptional.Get()) : ButtonBaseExtent;
+    const float ContainerWidth = GetContainerWidth();
+
+    float ComputedGap = MinSlotSpacing;
+    if (ButtonItems.Num() > 0 && ContainerWidth > KINDA_SMALL_NUMBER)
+    {
+        const float TotalButtonWidth = ButtonExtentValue * ButtonItems.Num();
+        const float AvailableWidth = ContainerWidth - TotalButtonWidth;
+        if (AvailableWidth > 0.f)
+        {
+            const float SpaceAroundGap = AvailableWidth / static_cast<float>(ButtonItems.Num() + 1);
+            ComputedGap = FMath::Max(MinSlotSpacing, SpaceAroundGap);
+        }
+    }
+
+    if (ButtonItems.Num() <= 0)
+    {
+        if (ButtonScrollBox.IsValid())
+        {
+            ButtonScrollBox->ScrollToStart();
+        }
+        return;
+    }
+
+    const float HalfGap = ComputedGap * 0.5f;
 
     for (int32 ItemIndex = 0; ItemIndex < ButtonItems.Num(); ++ItemIndex)
     {
@@ -246,47 +301,110 @@ void SListBuildingContainerWidget::RebuildButtonList()
             ButtonIconBrushes.Add(nullptr);
         }
 
-        TSharedRef<SHorizontalBox> ButtonContent = SNew(SHorizontalBox);
+        TSharedRef<SVerticalBox> ButtonContent = SNew(SVerticalBox);
 
         if (IconBrush.IsValid())
         {
             const TSharedPtr<FSlateBrush>& StoredBrush = ButtonIconBrushes.Last();
 
             ButtonContent->AddSlot()
-            .AutoWidth()
-            .VAlign(VAlign_Center)
-            .Padding(FMargin(0.f, 0.f, 8.f, 0.f))
+            .AutoHeight()
+            .HAlign(HAlign_Center)
             [
-                SNew(SImage)
-                .Image(StoredBrush.Get())
-                .ColorAndOpacity(FLinearColor::White)
+                SNew(SBox)
+                .WidthOverride(IconBoxSize)
+                .HeightOverride(IconBoxSize)
+                [
+                    SNew(SImage)
+                    .Image(StoredBrush.Get())
+                    .ColorAndOpacity(FLinearColor::White)
+                ]
             ];
         }
 
         ButtonContent->AddSlot()
-        .AutoWidth()
-        .VAlign(VAlign_Center)
+        .AutoHeight()
+        .HAlign(HAlign_Center)
+        .Padding(FMargin(0.f, IconBrush.IsValid() ? 6.f : 0.f, 0.f, 0.f))
         [
-            SNew(STextBlock)
-            .Text(Item.Label)
-            .Font(Style.CinzelRegular)
-            .ColorAndOpacity(FSlateColor(FLinearColor::White))
-            .ShadowColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 0.6f))
-            .ShadowOffset(FVector2D(1.f, 1.f))
+            SNew(SBox)
+            .WidthOverride(LabelWidthAttribute)
+            [
+                SNew(SScaleBox)
+                .Stretch(EStretch::ScaleToFit)
+                .StretchDirection(EStretchDirection::Both)
+                [
+                    SNew(STextBlock)
+                    .Text(Item.Label)
+                    .Font(Style.CinzelRegular)
+                    .Justification(ETextJustify::Center)
+                    .AutoWrapText(false)
+                    .ColorAndOpacity(FSlateColor(FLinearColor::White))
+                    .ShadowColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 0.6f))
+                    .ShadowOffset(FVector2D(1.f, 1.f))
+                ]
+            ]
         ];
 
-        const float LeftPadding = ItemIndex > 0 ? 12.f : (bHasCustomContent ? 8.f : 0.f);
+        const float LeftPadding = (ItemIndex == 0) ? ComputedGap : HalfGap;
+        const float RightPadding = (ItemIndex == ButtonItems.Num() - 1) ? ComputedGap : HalfGap;
 
         ButtonListContainer->AddSlot()
         .AutoWidth()
-        .Padding(FMargin(LeftPadding, 0.f, 0.f, 0.f))
+        .Padding(FMargin(LeftPadding, 0.f, RightPadding, 0.f))
+        .HAlign(HAlign_Center)
         [
-            SNew(SButton)
-            .ButtonStyle(&FCoreStyle::Get().GetWidgetStyle<FButtonStyle>("Button"))
-            .HAlign(HAlign_Left)
-            .ContentPadding(FMargin(12.f, 10.f))
+            SNew(SBox)
+            .WidthOverride(ButtonExtentAttribute)
+            .HeightOverride(ButtonExtentAttribute)
             [
-                ButtonContent
+                SNew(SButton)
+                .ButtonStyle(&FCoreStyle::Get().GetWidgetStyle<FButtonStyle>("Button"))
+                .ButtonColorAndOpacity(FLinearColor::Transparent)
+                .IsFocusable(false)
+                .ContentPadding(FMargin(0.f))
+                .HAlign(HAlign_Fill)
+                .VAlign(VAlign_Fill)
+                [
+                    SNew(SOverlay)
+                    + SOverlay::Slot()
+                    [
+                        SNew(SBeveledBorder)
+                        .Bevel(7.f)
+                        .NotchDepth(6.f)
+                        .NotchHeight(14.f)
+                        .RightNotchCount(1)
+                        .LeftNotchCount(2)
+                        .Color(ButtonFillColor)
+                        .Padding(ButtonContentPadding)
+                        [
+                            SNew(SOverlay)
+                            + SOverlay::Slot()
+                            [
+                                SNew(SBorder)
+                                .BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
+                                .BorderBackgroundColor(ButtonTintOverlay)
+                                .Padding(FMargin(0.f))
+                            ]
+                            + SOverlay::Slot()
+                            [
+                                ButtonContent
+                            ]
+                        ]
+                    ]
+                    + SOverlay::Slot()
+                    .VAlign(VAlign_Top)
+                    .HAlign(HAlign_Fill)
+                    [
+                        SNew(SBox)
+                        .HeightOverride(24.f)
+                        [
+                            SNew(SImage)
+                            .Image(&ListBuildingContainerWidgetPrivate::GlassSheenBrush)
+                            .ColorAndOpacity(ButtonSheenColor)
+                        ]
+                    ]
+                ]
             ]
         ];
     }
@@ -295,6 +413,138 @@ void SListBuildingContainerWidget::RebuildButtonList()
     {
         ButtonScrollBox->ScrollToStart();
     }
+}
+
+FReply SListBuildingContainerWidget::HandleScrollAreaMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& PointerEvent)
+{
+    if (PointerEvent.GetEffectingButton() == EKeys::LeftMouseButton)
+    {
+        bPendingScrollDrag = true;
+        ScrollDragStartPosition = PointerEvent.GetScreenSpacePosition();
+        ScrollDragStartOffset = ButtonScrollBox.IsValid() ? ButtonScrollBox->GetScrollOffset() : 0.f;
+    }
+
+    return FReply::Unhandled();
+}
+
+FReply SListBuildingContainerWidget::HandleScrollAreaMouseButtonUp(const FGeometry& Geometry, const FPointerEvent& PointerEvent)
+{
+    if (PointerEvent.GetEffectingButton() != EKeys::LeftMouseButton)
+    {
+        return FReply::Unhandled();
+    }
+
+    const bool bWasDragging = bIsDraggingScroll;
+    EndScrollDrag();
+
+    if (bWasDragging && ScrollInteractionLayer.IsValid())
+    {
+        return FReply::Handled().ReleaseMouseCapture();
+    }
+
+    return FReply::Unhandled();
+}
+
+FReply SListBuildingContainerWidget::HandleScrollAreaMouseMove(const FGeometry& Geometry, const FPointerEvent& PointerEvent)
+{
+    if (!PointerEvent.IsMouseButtonDown(EKeys::LeftMouseButton))
+    {
+        if (bIsDraggingScroll && ScrollInteractionLayer.IsValid())
+        {
+            FSlateApplication::Get().ReleaseAllPointerCapture();
+        }
+
+        if (bPendingScrollDrag || bIsDraggingScroll)
+        {
+            EndScrollDrag();
+        }
+        return FReply::Unhandled();
+    }
+
+    if (!ButtonScrollBox.IsValid() || !ScrollInteractionLayer.IsValid())
+    {
+        return FReply::Unhandled();
+    }
+
+    const FVector2D CurrentPosition = PointerEvent.GetScreenSpacePosition();
+    const FVector2D DragDelta = CurrentPosition - ScrollDragStartPosition;
+
+    if (!bIsDraggingScroll)
+    {
+        if (bPendingScrollDrag && FMath::Abs(DragDelta.X) >= FSlateApplication::Get().GetDragTriggerDistance())
+        {
+            bPendingScrollDrag = false;
+            bIsDraggingScroll = true;
+            return FReply::Handled().CaptureMouse(ScrollInteractionLayer.ToSharedRef());
+        }
+
+        return FReply::Unhandled();
+    }
+
+    const float MaxOffset = FMath::Max(0.f, ButtonScrollBox->GetScrollOffsetOfEnd());
+    const float TargetOffset = FMath::Clamp(ScrollDragStartOffset - DragDelta.X, 0.f, MaxOffset);
+    ButtonScrollBox->SetScrollOffset(TargetOffset);
+    return FReply::Handled();
+}
+
+void SListBuildingContainerWidget::EndScrollDrag()
+{
+    bPendingScrollDrag = false;
+    bIsDraggingScroll = false;
+}
+
+void SListBuildingContainerWidget::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+    SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+
+    if (!ScrollInteractionLayer.IsValid())
+    {
+        return;
+    }
+
+    const FVector2D CurrentSize = ScrollInteractionLayer->GetCachedGeometry().GetLocalSize();
+    if (!CurrentSize.IsNearlyZero() && !CurrentSize.Equals(CachedScrollSize, 0.5f))
+    {
+        CachedScrollSize = CurrentSize;
+        CachedButtonExtent = FMath::Max(1.f, CurrentSize.Y);
+        CachedContainerWidth = CurrentSize.X;
+        RebuildButtonList();
+    }
+}
+
+FOptionalSize SListBuildingContainerWidget::GetButtonExtent() const
+{
+    constexpr float DefaultExtent = 116.f;
+    if (ScrollInteractionLayer.IsValid())
+    {
+        const FVector2D LocalSize = ScrollInteractionLayer->GetCachedGeometry().GetLocalSize();
+        if (LocalSize.X > KINDA_SMALL_NUMBER)
+        {
+            CachedContainerWidth = LocalSize.X;
+        }
+        if (LocalSize.Y > KINDA_SMALL_NUMBER)
+        {
+            CachedScrollSize = LocalSize;
+            CachedButtonExtent = FMath::Max(1.f, LocalSize.Y);
+        }
+    }
+
+    const float Extent = CachedButtonExtent > 0.f ? CachedButtonExtent : DefaultExtent;
+    return FOptionalSize(FMath::Max(1.f, Extent));
+}
+
+float SListBuildingContainerWidget::GetContainerWidth() const
+{
+    if (ScrollInteractionLayer.IsValid())
+    {
+        const FVector2D LocalSize = ScrollInteractionLayer->GetCachedGeometry().GetLocalSize();
+        if (LocalSize.X > KINDA_SMALL_NUMBER)
+        {
+            CachedContainerWidth = LocalSize.X;
+        }
+    }
+
+    return CachedContainerWidth;
 }
 
 bool SListBuildingContainerWidget::ShouldDisplayIcon(const FSlateBrush& Brush) const
