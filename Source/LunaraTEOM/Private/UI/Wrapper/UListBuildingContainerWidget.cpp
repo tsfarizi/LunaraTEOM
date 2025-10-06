@@ -1,5 +1,11 @@
 #include "UI/Wrapper/UListBuildingContainerWidget.h"
 #include "UI/Widget/SListBuildingContainerWidget.h"
+#include "UI/Style/LunaraTeomSlateWidgetStyle.h"
+
+UListBuildingContainerWidget::UListBuildingContainerWidget()
+{
+    ButtonFont = FLunaraTeomSlateStyle::GetDefault().CinzelRegular;
+}
 
 TSharedRef<SWidget> UListBuildingContainerWidget::RebuildWidget()
 {
@@ -14,6 +20,7 @@ TSharedRef<SWidget> UListBuildingContainerWidget::RebuildWidget()
         MySlate->ClearContent();
     }
 
+    MySlate->SetButtonFont(ButtonFont);
     MySlate->SetButtonItems(ButtonItems);
 
     return MySlate.ToSharedRef();
@@ -31,6 +38,7 @@ void UListBuildingContainerWidget::SynchronizeProperties()
 
     if (MySlate.IsValid())
     {
+        MySlate->SetButtonFont(ButtonFont);
         MySlate->SetButtonItems(ButtonItems);
     }
 }
@@ -48,6 +56,16 @@ void UListBuildingContainerWidget::OnSlotRemoved(UPanelSlot* InSlot)
     if (MySlate.IsValid())
     {
         MySlate->ClearContent();
+    }
+}
+
+void UListBuildingContainerWidget::SetButtonFont(const FSlateFontInfo& InFont)
+{
+    ButtonFont = InFont;
+
+    if (MySlate.IsValid())
+    {
+        MySlate->SetButtonFont(ButtonFont);
     }
 }
 

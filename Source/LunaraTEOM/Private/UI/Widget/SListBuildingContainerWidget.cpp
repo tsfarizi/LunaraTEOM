@@ -2,6 +2,7 @@
 
 #include "UI/Style/LunaraTeomSlateWidgetStyle.h"
 #include "UI/Widget/SBeveledBorder.h"
+#include "UI/Widget/Button/IconText/SIconTextButtonWidget.h"
 
 #include "SlateOptMacros.h"
 #include "Styling/CoreStyle.h"
@@ -10,7 +11,6 @@
 #include "Brushes/SlateColorBrush.h"
 #include "Brushes/SlateRoundedBoxBrush.h"
 
-#include "Widgets/Input/SButton.h"
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBackgroundBlur.h"
 #include "Widgets/Layout/SBorder.h"
@@ -21,7 +21,6 @@
 #include "Widgets/Text/STextBlock.h"
 
 #include "Framework/Application/SlateApplication.h"
-#include "Widgets/Layout/SScaleBox.h"
 #include "InputCoreTypes.h"
 
 namespace ListBuildingContainerWidgetPrivate
@@ -38,6 +37,10 @@ BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
 void SListBuildingContainerWidget::Construct(const FArguments& InArgs)
 {
     const FLunaraTeomSlateStyle& Style = FLunaraTeomSlateStyle::GetDefault();
+
+    ButtonLabelFont = Style.CinzelRegular;
+    SetCanTick(true);
+
 
     const FLinearColor OuterBorderColor = Style.AccentColor.CopyWithNewOpacity(0.32f);
 
@@ -231,6 +234,24 @@ void SListBuildingContainerWidget::SetButtonItems(const TArray<FListBuildingButt
     RebuildButtonList();
 }
 
+
+void SListBuildingContainerWidget::SetButtonFont(const FSlateFontInfo& InFont)
+{
+    FSlateFontInfo ResolvedFont = InFont;
+
+    if ((ResolvedFont.FontObject == nullptr && ResolvedFont.TypefaceFontName.IsNone()) || ResolvedFont.Size <= 0)
+    {
+        const FLunaraTeomSlateStyle& Style = FLunaraTeomSlateStyle::GetDefault();
+        ResolvedFont = Style.CinzelRegular;
+    }
+
+    if (!(ButtonLabelFont == ResolvedFont))
+    {
+        ButtonLabelFont = ResolvedFont;
+        RebuildButtonList();
+    }
+}
+
 void SListBuildingContainerWidget::RebuildButtonList()
 {
     if (!ButtonListContainer.IsValid())
@@ -238,30 +259,18 @@ void SListBuildingContainerWidget::RebuildButtonList()
         return;
     }
 
-    const FLunaraTeomSlateStyle& Style = FLunaraTeomSlateStyle::GetDefault();
     ButtonListContainer->ClearChildren();
     ButtonIconBrushes.Reset(ButtonItems.Num());
 
     constexpr float ButtonBaseExtent = 116.f;
-    const FMargin ButtonContentPadding(12.f);
-    const float ButtonHorizontalPadding = ButtonContentPadding.GetTotalSpaceAlong<Orient_Horizontal>();
-    const float IconBoxSize = 48.f;
-    const FLinearColor ButtonFillColor(0.929f, 0.780f, 0.216f, 0.95f);
-    const FLinearColor ButtonTintOverlay(0.929f, 0.780f, 0.216f, 0.18f);
-    const FLinearColor ButtonSheenColor = Style.HighlightColor.CopyWithNewOpacity(0.2f);
     const float MinSlotSpacing = 20.f;
 
     const TAttribute<FOptionalSize> ButtonExtentAttribute = TAttribute<FOptionalSize>::Create(TAttribute<FOptionalSize>::FGetter::CreateSP(this, &SListBuildingContainerWidget::GetButtonExtent));
-    const TAttribute<FOptionalSize> LabelWidthAttribute = TAttribute<FOptionalSize>::Create(TAttribute<FOptionalSize>::FGetter::CreateLambda([this, ButtonBaseExtent, ButtonHorizontalPadding]() -> FOptionalSize
-    {
-        const FOptionalSize ExtentOptional = GetButtonExtent();
-        const float ExtentValue = ExtentOptional.IsSet() ? FMath::Max(1.f, ExtentOptional.Get()) : ButtonBaseExtent;
-        return FOptionalSize(FMath::Max(1.f, ExtentValue - ButtonHorizontalPadding));
-    }));
 
     const FOptionalSize ButtonExtentOptional = GetButtonExtent();
     const float ButtonExtentValue = ButtonExtentOptional.IsSet() ? FMath::Max(1.f, ButtonExtentOptional.Get()) : ButtonBaseExtent;
     const float ContainerWidth = GetContainerWidth();
+    const float IconBoxSize = FMath::Max(24.f, ButtonExtentValue * 0.45f);
 
     float ComputedGap = MinSlotSpacing;
     if (ButtonItems.Num() > 0 && ContainerWidth > KINDA_SMALL_NUMBER)
@@ -301,51 +310,7 @@ void SListBuildingContainerWidget::RebuildButtonList()
             ButtonIconBrushes.Add(nullptr);
         }
 
-        TSharedRef<SVerticalBox> ButtonContent = SNew(SVerticalBox);
-
-        if (IconBrush.IsValid())
-        {
-            const TSharedPtr<FSlateBrush>& StoredBrush = ButtonIconBrushes.Last();
-
-            ButtonContent->AddSlot()
-            .AutoHeight()
-            .HAlign(HAlign_Center)
-            [
-                SNew(SBox)
-                .WidthOverride(IconBoxSize)
-                .HeightOverride(IconBoxSize)
-                [
-                    SNew(SImage)
-                    .Image(StoredBrush.Get())
-                    .ColorAndOpacity(FLinearColor::White)
-                ]
-            ];
-        }
-
-        ButtonContent->AddSlot()
-        .AutoHeight()
-        .HAlign(HAlign_Center)
-        .Padding(FMargin(0.f, IconBrush.IsValid() ? 6.f : 0.f, 0.f, 0.f))
-        [
-            SNew(SBox)
-            .WidthOverride(LabelWidthAttribute)
-            [
-                SNew(SScaleBox)
-                .Stretch(EStretch::ScaleToFit)
-                .StretchDirection(EStretchDirection::Both)
-                [
-                    SNew(STextBlock)
-                    .Text(Item.Label)
-                    .Font(Style.CinzelRegular)
-                    .Justification(ETextJustify::Center)
-                    .AutoWrapText(false)
-                    .ColorAndOpacity(FSlateColor(FLinearColor::White))
-                    .ShadowColorAndOpacity(FLinearColor(0.f, 0.f, 0.f, 0.6f))
-                    .ShadowOffset(FVector2D(1.f, 1.f))
-                ]
-            ]
-        ];
-
+        const TSharedPtr<FSlateBrush>& StoredBrush = ButtonIconBrushes.Last();
         const float LeftPadding = (ItemIndex == 0) ? ComputedGap : HalfGap;
         const float RightPadding = (ItemIndex == ButtonItems.Num() - 1) ? ComputedGap : HalfGap;
 
@@ -358,53 +323,15 @@ void SListBuildingContainerWidget::RebuildButtonList()
             .WidthOverride(ButtonExtentAttribute)
             .HeightOverride(ButtonExtentAttribute)
             [
-                SNew(SButton)
-                .ButtonStyle(&FCoreStyle::Get().GetWidgetStyle<FButtonStyle>("Button"))
-                .ButtonColorAndOpacity(FLinearColor::Transparent)
-                .IsFocusable(false)
-                .ContentPadding(FMargin(0.f))
-                .HAlign(HAlign_Fill)
-                .VAlign(VAlign_Fill)
-                [
-                    SNew(SOverlay)
-                    + SOverlay::Slot()
-                    [
-                        SNew(SBeveledBorder)
-                        .Bevel(7.f)
-                        .NotchDepth(6.f)
-                        .NotchHeight(14.f)
-                        .RightNotchCount(1)
-                        .LeftNotchCount(2)
-                        .Color(ButtonFillColor)
-                        .Padding(ButtonContentPadding)
-                        [
-                            SNew(SOverlay)
-                            + SOverlay::Slot()
-                            [
-                                SNew(SBorder)
-                                .BorderImage(FCoreStyle::Get().GetBrush("WhiteBrush"))
-                                .BorderBackgroundColor(ButtonTintOverlay)
-                                .Padding(FMargin(0.f))
-                            ]
-                            + SOverlay::Slot()
-                            [
-                                ButtonContent
-                            ]
-                        ]
-                    ]
-                    + SOverlay::Slot()
-                    .VAlign(VAlign_Top)
-                    .HAlign(HAlign_Fill)
-                    [
-                        SNew(SBox)
-                        .HeightOverride(24.f)
-                        [
-                            SNew(SImage)
-                            .Image(&ListBuildingContainerWidgetPrivate::GlassSheenBrush)
-                            .ColorAndOpacity(ButtonSheenColor)
-                        ]
-                    ]
-                ]
+                SNew(SIconTextButtonWidget)
+                .IconBrush(StoredBrush.Get())
+                .IconColor(FLinearColor::White)
+                .Label(Item.Label)
+                .Font(ButtonLabelFont)
+                .LabelColor(FSlateColor(FLinearColor::White))
+                .IconSize(IconBoxSize)
+                .Spacing(IconBrush.IsValid() ? FMath::Max(4.f, ButtonExtentValue * 0.08f) : 0.f)
+                .LabelMaxWidth(ButtonExtentValue)
             ]
         ];
     }
@@ -414,6 +341,7 @@ void SListBuildingContainerWidget::RebuildButtonList()
         ButtonScrollBox->ScrollToStart();
     }
 }
+
 
 FReply SListBuildingContainerWidget::HandleScrollAreaMouseButtonDown(const FGeometry& Geometry, const FPointerEvent& PointerEvent)
 {

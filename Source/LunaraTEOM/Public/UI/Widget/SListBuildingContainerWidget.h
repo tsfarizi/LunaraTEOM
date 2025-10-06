@@ -1,10 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "Widgets/SCompoundWidget.h"
 #include "Types/SlateStructs.h"
+#include "Fonts/SlateFontInfo.h"
 
 #include "UI/Widget/ListBuildingButtonItem.h"
 
@@ -13,19 +12,14 @@ class SScrollBox;
 class SHorizontalBox;
 class SBorder;
 
-/**
- *
- */
 class LUNARATEOM_API SListBuildingContainerWidget : public SCompoundWidget
 {
 public:
     SLATE_BEGIN_ARGS(SListBuildingContainerWidget)
     {}
-        // Content slot yang diekspos ke WBP.
         SLATE_DEFAULT_SLOT(FArguments, Content)
     SLATE_END_ARGS()
 
-    /** Constructs this widget with InArgs */
     void Construct(const FArguments& InArgs);
 
     void SetContent(const TSharedRef<SWidget>& InContent);
@@ -33,6 +27,8 @@ public:
 
     void SetButtonItems(const TArray<FListBuildingButtonItem>& InItems);
     const TArray<FListBuildingButtonItem>& GetButtonItems() const { return ButtonItems; }
+
+    void SetButtonFont(const FSlateFontInfo& InFont);
 
 private:
     TSharedPtr<class SBeveledBorder> ContentBorder;
@@ -43,6 +39,8 @@ private:
     TSharedPtr<class SBorder> ScrollInteractionLayer;
     TArray<FListBuildingButtonItem> ButtonItems;
     TArray<TSharedPtr<FSlateBrush>> ButtonIconBrushes;
+
+    FSlateFontInfo ButtonLabelFont;
 
     bool bPendingScrollDrag = false;
     bool bIsDraggingScroll = false;

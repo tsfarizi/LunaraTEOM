@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ContentWidget.h"
+#include "Fonts/SlateFontInfo.h"
 #include "UI/Widget/ListBuildingButtonItem.h"
 #include "UListBuildingContainerWidget.generated.h"
 
@@ -13,16 +14,23 @@ class LUNARATEOM_API UListBuildingContainerWidget : public UContentWidget
     GENERATED_BODY()
 
 public:
+    UListBuildingContainerWidget();
+
     virtual TSharedRef<SWidget> RebuildWidget() override;
     virtual void ReleaseSlateResources(bool bReleaseChildren) override;
     virtual void SynchronizeProperties() override;
 
-    // Properti dan fungsi tombol yang diekspos ke WBP.
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "List Building", meta = (ExposeOnSpawn = "true"))
     TArray<FListBuildingButtonItem> ButtonItems;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "List Building", meta = (ExposeOnSpawn = "true"))
+    FSlateFontInfo ButtonFont;
+
     UFUNCTION(BlueprintCallable, Category = "List Building")
     void SetButtonItems(const TArray<FListBuildingButtonItem>& InItems);
+
+    UFUNCTION(BlueprintCallable, Category = "List Building")
+    void SetButtonFont(const FSlateFontInfo& InFont);
 
     UFUNCTION(BlueprintCallable, Category = "List Building")
     void AddButtonItem(const FListBuildingButtonItem& NewItem);
