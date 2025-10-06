@@ -5,7 +5,6 @@
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Input/SButton.h"
 #include "Widgets/Layout/SBox.h"
-#include "Widgets/Layout/SScaleBox.h"
 #include "Widgets/Text/STextBlock.h"
 
 BEGIN_SLATE_FUNCTION_BUILD_OPTIMIZATION
@@ -53,21 +52,16 @@ void SIconTextButtonWidget::Construct(const FArguments& InArgs)
         .ShadowOffset(FVector2D(1.f, 1.f))
         .WrapTextAt(0.f);
 
-    TSharedRef<SScaleBox> LabelScaleBox = SNew(SScaleBox)
-        .Stretch(EStretch::ScaleToFit)
-        .StretchDirection(EStretchDirection::Both)
-        [
-            LabelText
-        ];
+    const bool bHasLabel = !LabelAttr.Get(FText::GetEmpty()).IsEmpty();
 
-    TSharedRef<SWidget> LabelWidget = StaticCastSharedRef<SWidget>(LabelScaleBox);
+    TSharedRef<SWidget> LabelWidget = StaticCastSharedRef<SWidget>(LabelText);
 
     if (LabelMaxWidth > 0.f)
     {
         TSharedRef<SBox> LabelBox = SNew(SBox)
             .WidthOverride(LabelMaxWidth)
             [
-                LabelScaleBox
+                LabelText
             ];
         LabelWidget = StaticCastSharedRef<SWidget>(LabelBox);
     }
@@ -75,7 +69,7 @@ void SIconTextButtonWidget::Construct(const FArguments& InArgs)
     ContentBox->AddSlot()
     .AutoHeight()
     .HAlign(HAlign_Center)
-    .Padding(FMargin(0.f, bHasIcon ? Spacing : 0.f, 0.f, 0.f))
+    .Padding(FMargin(0.f, (bHasIcon && bHasLabel) ? Spacing : 0.f, 0.f, 0.f))
     [
         LabelWidget
     ];

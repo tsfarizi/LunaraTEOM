@@ -12,6 +12,8 @@
 #include "Brushes/SlateRoundedBoxBrush.h"
 
 #include "Widgets/Images/SImage.h"
+#include "Fonts/FontMeasure.h"
+#include "Rendering/SlateRenderer.h"
 #include "Widgets/Layout/SBackgroundBlur.h"
 #include "Widgets/Layout/SBorder.h"
 #include "Widgets/Layout/SBox.h"
@@ -270,7 +272,9 @@ void SListBuildingContainerWidget::RebuildButtonList()
     const FOptionalSize ButtonExtentOptional = GetButtonExtent();
     const float ButtonExtentValue = ButtonExtentOptional.IsSet() ? FMath::Max(1.f, ButtonExtentOptional.Get()) : ButtonBaseExtent;
     const float ContainerWidth = GetContainerWidth();
-    const float IconBoxSize = FMath::Max(24.f, ButtonExtentValue * 0.45f);
+    const float LabelReservedRatio = 0.35f;
+    const float DefaultLabelSpacing = FMath::Clamp(ButtonExtentValue * 0.08f, 4.f, 12.f);
+    const float LabelHorizontalPadding = FMath::Max(8.f, ButtonExtentValue * 0.12f);
 
     float ComputedGap = MinSlotSpacing;
     if (ButtonItems.Num() > 0 && ContainerWidth > KINDA_SMALL_NUMBER)
@@ -311,6 +315,37 @@ void SListBuildingContainerWidget::RebuildButtonList()
         }
 
         const TSharedPtr<FSlateBrush>& StoredBrush = ButtonIconBrushes.Last();
+        const bool bHasIcon = StoredBrush.IsValid();
+        const bool bHasLabel = !Item.Label.IsEmpty();
+
+        float LabelSpacing = 0.f;
+        float IconBoxSize = ButtonExtentValue;
+        float LabelMeasuredWidth = 0.f;
+
+        if (bHasLabel)
+        {
+            LabelSpacing = bHasIcon ? DefaultLabelSpacing : 0.f;
+            const float ReservedHeight = ButtonExtentValue * LabelReservedRatio;
+            const float AvailableForIcon = FMath::Max(0.f, ButtonExtentValue - ReservedHeight - LabelSpacing);
+            IconBoxSize = FMath::Max(0.f, AvailableForIcon);
+
+            if (IconBoxSize <= KINDA_SMALL_NUMBER)
+            {
+                IconBoxSize = FMath::Max(0.f, ButtonExtentValue - LabelSpacing);
+            }
+
+            if (FSlateApplication::IsInitialized())
+            {
+                if (FSlateRenderer* Renderer = FSlateApplication::Get().GetRenderer())
+                {
+                    const TSharedRef<FSlateFontMeasure> FontMeasure = Renderer->GetFontMeasureService();
+                    LabelMeasuredWidth = FontMeasure->Measure(Item.Label, ButtonLabelFont).X;
+                }
+            }
+        }
+
+        const float DesiredButtonWidth = FMath::Max(ButtonExtentValue, LabelMeasuredWidth + LabelHorizontalPadding);
+
         const float LeftPadding = (ItemIndex == 0) ? ComputedGap : HalfGap;
         const float RightPadding = (ItemIndex == ButtonItems.Num() - 1) ? ComputedGap : HalfGap;
 
@@ -320,7 +355,7 @@ void SListBuildingContainerWidget::RebuildButtonList()
         .HAlign(HAlign_Center)
         [
             SNew(SBox)
-            .WidthOverride(ButtonExtentAttribute)
+            .WidthOverride(DesiredButtonWidth)
             .HeightOverride(ButtonExtentAttribute)
             [
                 SNew(SIconTextButtonWidget)
@@ -330,8 +365,8 @@ void SListBuildingContainerWidget::RebuildButtonList()
                 .Font(ButtonLabelFont)
                 .LabelColor(FSlateColor(FLinearColor::White))
                 .IconSize(IconBoxSize)
-                .Spacing(IconBrush.IsValid() ? FMath::Max(4.f, ButtonExtentValue * 0.08f) : 0.f)
-                .LabelMaxWidth(ButtonExtentValue)
+                .Spacing(LabelSpacing)
+                .LabelMaxWidth(DesiredButtonWidth)
             ]
         ];
     }
@@ -482,3 +517,4 @@ bool SListBuildingContainerWidget::ShouldDisplayIcon(const FSlateBrush& Brush) c
         || Brush.DrawAs != ESlateBrushDrawType::NoDrawType
         || Brush.GetResourceName().IsValid();
 }
+
