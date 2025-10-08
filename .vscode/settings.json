@@ -10,7 +10,7 @@
   "C_Cpp.intelliSenseCacheSize": 4096,
   "C_Cpp.codeAnalysis.runAutomatically": true,
   
-  "C_Cpp.default.compileCommands": "${workspaceFolder}/compileCommands_LunaraTEOM.json",
+  // "C_Cpp.default.compileCommands": "${workspaceFolder}/compileCommands_LunaraTEOM.json",
 
   "C_Cpp.default.browse.path": [
     "${workspaceFolder}/Source"
@@ -18,7 +18,8 @@
   "C_Cpp.default.browse.limitSymbolsToIncludedHeaders": true,
 
   "C_Cpp.default.includePath": [
-    "${workspaceFolder}/Source/**"
+    "${workspaceFolder}/Source/**/Public",
+    "${workspaceFolder}/Plugins/**/Public"
   ],
 
   "C_Cpp.exclusionPolicy": "checkFilesAndFolders",
@@ -36,19 +37,21 @@
     "**/Intermediate/**": true,
     "**/DerivedDataCache/**": true,
     "**/.git/**": true,
-    "**/Saved/**": true
+    "**/Saved/**": true,
+    "**/*.cpp": true
   },
 
   "files.exclude": {
     "**/Binaries": true,
     "**/Intermediate": true,
     "**/DerivedDataCache": true,
-    "**/Saved": true
+    "**/Saved": true,
   },
   "search.exclude": {
     "**/Binaries": true,
     "**/Intermediate": true,
     "**/DerivedDataCache": true,
-    "**/Saved": true
+    "**/Saved": true,
+    "**/*.cpp": true
   }
 }

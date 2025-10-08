@@ -1,8 +1,10 @@
 /.git
 /.vscode
 /Content
+/Contracts
 /DerivedDataCache
 /Intermediate
 /Platforms
 /Saved
 /Scripts
+/Plugins/SlateAgentBridge/Intermediate
