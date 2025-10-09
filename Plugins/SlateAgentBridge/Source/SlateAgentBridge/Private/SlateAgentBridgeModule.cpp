@@ -3,8 +3,12 @@
 #include "SlateAgentBridgeModule.h"
 
 #include "SlateAgentBridgeEditorModeCommands.h"
+#include "SlateAgentBridgeLiveCodingManager.h"
+#include "SlateAgentBridgeLiveCodingTypes.h"
+#include "SlateAgentBridgeLog.h"
 
 #include "Async/Async.h"
+#include "ILiveCodingModule.h"
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
 #include "HAL/Event.h"
@@ -13,19 +17,15 @@
 #include "HttpServerConstants.h"
 #include "HttpServerModule.h"
 #include "IHttpRouter.h"
-#include "ILiveCodingModule.h"
+#include "Modules/ModuleManager.h"
 #include "Math/NumericLimits.h"
-#include "Logging/LogVerbosity.h"
 #include "Misc/ConfigCacheIni.h"
-#include "Misc/OutputDevice.h"
-#include "Misc/OutputDeviceRedirector.h"
-#include "Misc/ScopeLock.h"
 #include "Serialization/JsonSerializer.h"
 #include "Serialization/JsonWriter.h"
 
 #define LOCTEXT_NAMESPACE "SlateAgentBridgeModule"
 
-DEFINE_LOG_CATEGORY_STATIC(LogSlateAgentBridge, Log, All);
+DEFINE_LOG_CATEGORY(LogSlateAgentBridge);
 
 namespace SlateAgentBridge
 {
@@ -34,67 +34,10 @@ namespace SlateAgentBridge
 	static constexpr const TCHAR* ConfigSection = TEXT("/Script/SlateAgentBridge.SlateAgentBridgeSettings");
 	static constexpr const TCHAR* ConfigPortKey = TEXT("LiveCodingHttpPort");
 	static constexpr const TCHAR* ConfigRouteKey = TEXT("LiveCodingRoutePath");
-
-	static FString GetVerbosityString(const ELogVerbosity::Type Verbosity)
-	{
-		return FString(::ToString(Verbosity));
-	}
 }
-
-class FLiveCodingLogCapture : public FOutputDevice
-{
-public:
-	FLiveCodingLogCapture() = default;
-
-	void StartCapture()
-	{
-		FScopeLock CaptureLock(&CaptureMutex);
-		CapturedEntries.Reset();
-		bIsCapturing = true;
-	}
-
-	TArray<FSlateAgentBridgeLogEntry> StopCapture()
-	{
-		FScopeLock CaptureLock(&CaptureMutex);
-		bIsCapturing = false;
-		return MoveTemp(CapturedEntries);
-	}
-
-	virtual void Serialize(const TCHAR* V, ELogVerbosity::Type Verbosity, const FName& Category) override
-	{
-		if (Category.IsNone())
-		{
-			return;
-		}
-
-		const FString CategoryString = Category.ToString();
-		if (!CategoryString.Contains(TEXT("LiveCoding")))
-		{
-			return;
-		}
-
-		FScopeLock CaptureLock(&CaptureMutex);
-		if (!bIsCapturing)
-		{
-			return;
-		}
-
-		FSlateAgentBridgeLogEntry& NewEntry = CapturedEntries.AddDefaulted_GetRef();
-		NewEntry.Category = CategoryString;
-		NewEntry.Message = FString(V);
-		NewEntry.Verbosity = SlateAgentBridge::GetVerbosityString(Verbosity);
-		NewEntry.Timestamp = FDateTime::UtcNow();
-	}
-
-private:
-	FCriticalSection CaptureMutex;
-	bool bIsCapturing = false;
-	TArray<FSlateAgentBridgeLogEntry> CapturedEntries;
-};
 
 void FSlateAgentBridgeModule::StartupModule()
 {
-	LastCompileResult = ELiveCodingCompileResult::NotStarted;
 	HttpServerPort = SlateAgentBridge::DefaultLiveCodingPort;
 	LiveCodingRoutePath = SlateAgentBridge::DefaultRoutePath;
 
@@ -119,7 +62,9 @@ void FSlateAgentBridgeModule::StartupModule()
 		}
 	}
 
-	InitializeLogCapture();
+	LiveCodingManager = MakeUnique<FSlateAgentBridgeLiveCodingManager>();
+	LiveCodingManager->Initialize();
+
 	RegisterHttpEndpoint();
 
 	UE_LOG(LogSlateAgentBridge, Display, TEXT("SlateAgentBridge module started. Live coding endpoint: http://127.0.0.1:%u%s"), HttpServerPort, *LiveCodingRoutePath);
@@ -130,7 +75,12 @@ void FSlateAgentBridgeModule::StartupModule()
 void FSlateAgentBridgeModule::ShutdownModule()
 {
 	UnregisterHttpEndpoint();
-	ReleaseLogCapture();
+
+	if (LiveCodingManager)
+	{
+		LiveCodingManager->Shutdown();
+		LiveCodingManager.Reset();
+	}
 
 	FSlateAgentBridgeEditorModeCommands::Unregister();
 
@@ -185,33 +135,15 @@ void FSlateAgentBridgeModule::UnregisterHttpEndpoint()
 	HttpRouter.Reset();
 }
 
-void FSlateAgentBridgeModule::InitializeLogCapture()
-{
-	if (!LiveCodingLogCapture.IsValid())
-	{
-		LiveCodingLogCapture = MakeUnique<FLiveCodingLogCapture>();
-		if (GLog)
-		{
-			GLog->AddOutputDevice(LiveCodingLogCapture.Get());
-		}
-	}
-}
-
-void FSlateAgentBridgeModule::ReleaseLogCapture()
-{
-	if (LiveCodingLogCapture.IsValid())
-	{
-		if (GLog)
-		{
-			GLog->RemoveOutputDevice(LiveCodingLogCapture.Get());
-		}
-		LiveCodingLogCapture.Reset();
-	}
-}
-
 bool FSlateAgentBridgeModule::HandleLiveCodingCompileRequest(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
 {
-	UE_LOG(LogSlateAgentBridge, Display, TEXT("Received live coding compile request for %s."), *Request.RelativePath.GetPath());
+	if (!LiveCodingManager)
+	{
+		TUniquePtr<FHttpServerResponse> Response = FHttpServerResponse::Create(TEXT("{\"status\":\"error\",\"message\":\"Live coding manager is not initialized\"}"), TEXT("application/json"));
+		Response->Code = EHttpServerResponseCodes::ServerError;
+		OnComplete(MoveTemp(Response));
+		return true;
+	}
 
 	struct FCompileExecutionContext
 	{
@@ -221,13 +153,12 @@ bool FSlateAgentBridgeModule::HandleLiveCodingCompileRequest(const FHttpServerRe
 	};
 
 	FCompileExecutionContext ExecutionContext;
-
 	FEvent* CompletionEvent = FPlatformProcess::GetSynchEventFromPool(true);
+	FSlateAgentBridgeLiveCodingManager* ManagerPtr = LiveCodingManager.Get();
 
-	AsyncTask(ENamedThreads::GameThread, [this, &ExecutionContext, CompletionEvent]()
+	AsyncTask(ENamedThreads::GameThread, [ManagerPtr, &ExecutionContext, CompletionEvent]()
 	{
-		FScopeLock CompileLock(&LiveCodingMutex);
-		ExecutionContext.bSuccess = ExecuteLiveCodingCompileOnGameThread(ExecutionContext.ErrorMessage, ExecutionContext.CompileResult);
+		ExecutionContext.bSuccess = ManagerPtr->ExecuteCompile(ExecutionContext.ErrorMessage, ExecutionContext.CompileResult);
 		CompletionEvent->Trigger();
 	});
 
@@ -236,18 +167,16 @@ bool FSlateAgentBridgeModule::HandleLiveCodingCompileRequest(const FHttpServerRe
 
 	TArray<FSlateAgentBridgeLogEntry> LogSnapshot;
 	FDateTime SnapshotTimestamp;
+	ELiveCodingCompileResult SnapshotResult = ELiveCodingCompileResult::NotStarted;
 	bool bHasSnapshotResult = false;
 
-	{
-		FScopeLock LogLock(&LogMutex);
-		LogSnapshot = LastCompileLogEntries;
-		SnapshotTimestamp = LastCompileTimestamp;
-		bHasSnapshotResult = bHasCompileResult;
-	}
+	ManagerPtr->GetLastCompileSnapshot(LogSnapshot, SnapshotTimestamp, SnapshotResult, bHasSnapshotResult);
+
+	const ELiveCodingCompileResult ResultToReport = ExecutionContext.bSuccess ? ExecutionContext.CompileResult : SnapshotResult;
 
 	TSharedRef<FJsonObject> JsonPayload = MakeShared<FJsonObject>();
 	JsonPayload->SetStringField(TEXT("status"), ExecutionContext.bSuccess ? TEXT("ok") : TEXT("error"));
-	JsonPayload->SetStringField(TEXT("compileResult"), CompileResultToString(ExecutionContext.CompileResult));
+	JsonPayload->SetStringField(TEXT("compileResult"), FSlateAgentBridgeLiveCodingManager::CompileResultToString(ResultToReport));
 
 	if (!ExecutionContext.ErrorMessage.IsEmpty())
 	{
@@ -284,138 +213,6 @@ bool FSlateAgentBridgeModule::HandleLiveCodingCompileRequest(const FHttpServerRe
 	OnComplete(MoveTemp(Response));
 
 	return true;
-}
-
-bool FSlateAgentBridgeModule::ExecuteLiveCodingCompileOnGameThread(FString& OutErrorMessage, ELiveCodingCompileResult& OutResult)
-{
-	check(IsInGameThread());
-
-	OutResult = ELiveCodingCompileResult::NotStarted;
-
-	if (!LiveCodingLogCapture.IsValid())
-	{
-		OutErrorMessage = TEXT("Live coding log capture is not available.");
-		UE_LOG(LogSlateAgentBridge, Error, TEXT("%s"), *OutErrorMessage);
-		return false;
-	}
-
-	ILiveCodingModule* LiveCodingModule = FModuleManager::LoadModulePtr<ILiveCodingModule>(LIVE_CODING_MODULE_NAME);
-	if (!LiveCodingModule)
-	{
-		OutErrorMessage = TEXT("Live Coding module is unavailable. Enable Live Coding in the editor first.");
-		UE_LOG(LogSlateAgentBridge, Error, TEXT("%s"), *OutErrorMessage);
-		return false;
-	}
-
-	if (!LiveCodingModule->CanEnableForSession())
-	{
-		OutErrorMessage = LiveCodingModule->GetEnableErrorText().ToString();
-		UE_LOG(LogSlateAgentBridge, Error, TEXT("Live Coding cannot be enabled: %s"), *OutErrorMessage);
-		return false;
-	}
-
-	if (!LiveCodingModule->IsEnabledForSession())
-	{
-		LiveCodingModule->EnableForSession(true);
-	}
-
-	if (!LiveCodingModule->HasStarted())
-	{
-		LiveCodingModule->EnableForSession(true);
-	}
-
-	if (LiveCodingModule->IsCompiling())
-	{
-		OutErrorMessage = TEXT("A Live Coding compile is already in progress.");
-		UE_LOG(LogSlateAgentBridge, Warning, TEXT("%s"), *OutErrorMessage);
-		OutResult = ELiveCodingCompileResult::CompileStillActive;
-		return false;
-	}
-
-	UE_LOG(LogSlateAgentBridge, Display, TEXT("Live Coding compile started via HTTP endpoint."));
-
-	LiveCodingLogCapture->StartCapture();
-	const bool bCompileRequestAccepted = LiveCodingModule->Compile(ELiveCodingCompileFlags::WaitForCompletion, &OutResult);
-	TArray<FSlateAgentBridgeLogEntry> CapturedEntries = LiveCodingLogCapture->StopCapture();
-
-	{
-		FScopeLock LogLock(&LogMutex);
-		LastCompileLogEntries = MoveTemp(CapturedEntries);
-		LastCompileTimestamp = FDateTime::UtcNow();
-		LastCompileResult = OutResult;
-		bHasCompileResult = true;
-	}
-
-	if (!bCompileRequestAccepted)
-	{
-		OutErrorMessage = TEXT("Live Coding compile request was rejected.");
-		UE_LOG(LogSlateAgentBridge, Error, TEXT("%s"), *OutErrorMessage);
-		return false;
-	}
-
-	switch (OutResult)
-	{
-	case ELiveCodingCompileResult::Success:
-		UE_LOG(LogSlateAgentBridge, Display, TEXT("Live Coding compile completed with changes."));
-		return true;
-
-	case ELiveCodingCompileResult::NoChanges:
-		UE_LOG(LogSlateAgentBridge, Display, TEXT("Live Coding compile completed with no changes."));
-		return true;
-
-	case ELiveCodingCompileResult::InProgress:
-		OutErrorMessage = TEXT("Live Coding compile did not complete within the allotted time.");
-		UE_LOG(LogSlateAgentBridge, Warning, TEXT("%s"), *OutErrorMessage);
-		return false;
-
-	case ELiveCodingCompileResult::CompileStillActive:
-		OutErrorMessage = TEXT("Another Live Coding compile is still active.");
-		UE_LOG(LogSlateAgentBridge, Warning, TEXT("%s"), *OutErrorMessage);
-		return false;
-
-	case ELiveCodingCompileResult::NotStarted:
-		OutErrorMessage = TEXT("Live Coding compile could not be started.");
-		UE_LOG(LogSlateAgentBridge, Error, TEXT("%s"), *OutErrorMessage);
-		return false;
-
-	case ELiveCodingCompileResult::Failure:
-		OutErrorMessage = TEXT("Live Coding compile failed. See log for details.");
-		UE_LOG(LogSlateAgentBridge, Error, TEXT("%s"), *OutErrorMessage);
-		return false;
-
-	case ELiveCodingCompileResult::Cancelled:
-		OutErrorMessage = TEXT("Live Coding compile was cancelled.");
-		UE_LOG(LogSlateAgentBridge, Warning, TEXT("%s"), *OutErrorMessage);
-		return false;
-
-	default:
-		OutErrorMessage = TEXT("Live Coding compile result is unknown.");
-		UE_LOG(LogSlateAgentBridge, Warning, TEXT("%s"), *OutErrorMessage);
-		return false;
-	}
-}
-
-FString FSlateAgentBridgeModule::CompileResultToString(ELiveCodingCompileResult CompileResult) const
-{
-	switch (CompileResult)
-	{
-	case ELiveCodingCompileResult::Success:
-		return TEXT("Success");
-	case ELiveCodingCompileResult::NoChanges:
-		return TEXT("NoChanges");
-	case ELiveCodingCompileResult::InProgress:
-		return TEXT("InProgress");
-	case ELiveCodingCompileResult::CompileStillActive:
-		return TEXT("CompileStillActive");
-	case ELiveCodingCompileResult::NotStarted:
-		return TEXT("NotStarted");
-	case ELiveCodingCompileResult::Failure:
-		return TEXT("Failure");
-	case ELiveCodingCompileResult::Cancelled:
-		return TEXT("Cancelled");
-	default:
-		return TEXT("Unknown");
-	}
 }
 
 #undef LOCTEXT_NAMESPACE
