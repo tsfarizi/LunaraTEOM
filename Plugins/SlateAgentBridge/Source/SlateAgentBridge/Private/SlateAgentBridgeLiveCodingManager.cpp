@@ -5,14 +5,15 @@
 
 #include "ILiveCodingModule.h"
 #include "Logging/LogMacros.h"
-#include "Modules/ModuleManager.h"
 #include "Misc/OutputDeviceRedirector.h"
 #include "Misc/ScopeLock.h"
+#include "Modules/ModuleManager.h"
 
 FSlateAgentBridgeLiveCodingManager::FSlateAgentBridgeLiveCodingManager()
 	: LastCompileTimestamp(FDateTime(0))
 	, LastCompileResult(ELiveCodingCompileResult::NotStarted)
 	, bHasCompileResult(false)
+	, bCompileInProgress(false)
 {
 }
 
@@ -38,7 +39,10 @@ void FSlateAgentBridgeLiveCodingManager::Initialize()
 		LastCompileTimestamp = FDateTime(0);
 		LastCompileResult = ELiveCodingCompileResult::NotStarted;
 		bHasCompileResult = false;
+		LastErrorMessage.Reset();
 	}
+
+	bCompileInProgress.Store(false);
 }
 
 void FSlateAgentBridgeLiveCodingManager::Shutdown()
@@ -53,21 +57,49 @@ void FSlateAgentBridgeLiveCodingManager::Shutdown()
 	}
 }
 
-bool FSlateAgentBridgeLiveCodingManager::ExecuteCompile(FString& OutErrorMessage, ELiveCodingCompileResult& OutResult)
+bool FSlateAgentBridgeLiveCodingManager::TryBeginCompile(FString& OutErrorMessage)
 {
-	check(IsInGameThread());
-
-	FScopeLock CompileLock(&LiveCodingMutex);
-
-	if (!EnsureCaptureAvailable(OutErrorMessage))
+	bool bExpected = false;
+	if (!bCompileInProgress.CompareExchange(bExpected, true))
 	{
+		OutErrorMessage = TEXT("A Live Coding compile is already in progress.");
 		return false;
 	}
 
-	ILiveCodingModule* LiveCodingModule = nullptr;
-	if (!EnsureLiveCodingAvailable(OutErrorMessage, LiveCodingModule))
+	if (!EnsureCaptureAvailable(OutErrorMessage))
 	{
+		bCompileInProgress.Store(false);
 		return false;
+	}
+
+	{
+		FScopeLock LogLock(&LogMutex);
+		LastCompileTimestamp = FDateTime::UtcNow();
+		LastCompileResult = ELiveCodingCompileResult::InProgress;
+		LastErrorMessage.Reset();
+	}
+
+	UE_LOG(LogSlateAgentBridge, Display, TEXT("Live Coding compile request queued."));
+
+	return true;
+}
+
+void FSlateAgentBridgeLiveCodingManager::ExecuteCompileOnGameThread()
+{
+	FString ErrorMessage;
+	ELiveCodingCompileResult CompileResult = ELiveCodingCompileResult::NotStarted;
+
+	if (!EnsureCaptureAvailable(ErrorMessage))
+	{
+		FinalizeCompileWithError(ErrorMessage, ELiveCodingCompileResult::Failure);
+		return;
+	}
+
+	ILiveCodingModule* LiveCodingModule = nullptr;
+	if (!EnsureLiveCodingAvailable(ErrorMessage, LiveCodingModule))
+	{
+		FinalizeCompileWithError(ErrorMessage, ELiveCodingCompileResult::Failure);
+		return;
 	}
 
 	if (!LiveCodingModule->IsEnabledForSession())
@@ -82,82 +114,34 @@ bool FSlateAgentBridgeLiveCodingManager::ExecuteCompile(FString& OutErrorMessage
 
 	if (LiveCodingModule->IsCompiling())
 	{
-		OutErrorMessage = TEXT("A Live Coding compile is already in progress.");
-		UE_LOG(LogSlateAgentBridge, Warning, TEXT("%s"), *OutErrorMessage);
-		OutResult = ELiveCodingCompileResult::CompileStillActive;
-		return false;
+		FinalizeCompileWithError(TEXT("A Live Coding compile is already in progress."), ELiveCodingCompileResult::CompileStillActive);
+		return;
 	}
 
 	UE_LOG(LogSlateAgentBridge, Display, TEXT("Live Coding compile started via HTTP endpoint."));
 
 	LogCapture->StartCapture();
-	const bool bCompileRequestAccepted = LiveCodingModule->Compile(ELiveCodingCompileFlags::WaitForCompletion, &OutResult);
+	const bool bCompileRequestAccepted = LiveCodingModule->Compile(ELiveCodingCompileFlags::WaitForCompletion, &CompileResult);
 	TArray<FSlateAgentBridgeLogEntry> CapturedEntries = LogCapture->StopCapture();
-
-	{
-		FScopeLock LogLock(&LogMutex);
-		LastCompileLogEntries = MoveTemp(CapturedEntries);
-		LastCompileTimestamp = FDateTime::UtcNow();
-		LastCompileResult = OutResult;
-		bHasCompileResult = true;
-	}
 
 	if (!bCompileRequestAccepted)
 	{
-		OutErrorMessage = TEXT("Live Coding compile request was rejected.");
-		UE_LOG(LogSlateAgentBridge, Error, TEXT("%s"), *OutErrorMessage);
-		return false;
+		FinalizeCompileWithError(TEXT("Live Coding compile request was rejected."), ELiveCodingCompileResult::Failure);
+		return;
 	}
 
-	switch (OutResult)
-	{
-	case ELiveCodingCompileResult::Success:
-		UE_LOG(LogSlateAgentBridge, Display, TEXT("Live Coding compile completed with changes."));
-		return true;
-
-	case ELiveCodingCompileResult::NoChanges:
-		UE_LOG(LogSlateAgentBridge, Display, TEXT("Live Coding compile completed with no changes."));
-		return true;
-
-	case ELiveCodingCompileResult::InProgress:
-		OutErrorMessage = TEXT("Live Coding compile did not complete within the allotted time.");
-		UE_LOG(LogSlateAgentBridge, Warning, TEXT("%s"), *OutErrorMessage);
-		return false;
-
-	case ELiveCodingCompileResult::CompileStillActive:
-		OutErrorMessage = TEXT("Another Live Coding compile is still active.");
-		UE_LOG(LogSlateAgentBridge, Warning, TEXT("%s"), *OutErrorMessage);
-		return false;
-
-	case ELiveCodingCompileResult::NotStarted:
-		OutErrorMessage = TEXT("Live Coding compile could not be started.");
-		UE_LOG(LogSlateAgentBridge, Error, TEXT("%s"), *OutErrorMessage);
-		return false;
-
-	case ELiveCodingCompileResult::Failure:
-		OutErrorMessage = TEXT("Live Coding compile failed. See log for details.");
-		UE_LOG(LogSlateAgentBridge, Error, TEXT("%s"), *OutErrorMessage);
-		return false;
-
-	case ELiveCodingCompileResult::Cancelled:
-		OutErrorMessage = TEXT("Live Coding compile was cancelled.");
-		UE_LOG(LogSlateAgentBridge, Warning, TEXT("%s"), *OutErrorMessage);
-		return false;
-
-	default:
-		OutErrorMessage = TEXT("Live Coding compile result is unknown.");
-		UE_LOG(LogSlateAgentBridge, Warning, TEXT("%s"), *OutErrorMessage);
-		return false;
-	}
+	FinalizeCompile(MoveTemp(CapturedEntries), CompileResult, FString());
 }
 
-void FSlateAgentBridgeLiveCodingManager::GetLastCompileSnapshot(TArray<FSlateAgentBridgeLogEntry>& OutEntries, FDateTime& OutTimestamp, ELiveCodingCompileResult& OutResult, bool& bOutHasResult) const
+void FSlateAgentBridgeLiveCodingManager::GetLastCompileSnapshot(TArray<FSlateAgentBridgeLogEntry>& OutEntries, FDateTime& OutTimestamp, ELiveCodingCompileResult& OutResult, bool& bOutHasResult, FString& OutErrorMessage, bool& bOutIsInProgress) const
 {
 	FScopeLock LogLock(&LogMutex);
 	OutEntries = LastCompileLogEntries;
 	OutTimestamp = LastCompileTimestamp;
 	OutResult = LastCompileResult;
 	bOutHasResult = bHasCompileResult;
+	OutErrorMessage = LastErrorMessage;
+	bOutIsInProgress = bCompileInProgress.Load();
 }
 
 FString FSlateAgentBridgeLiveCodingManager::CompileResultToString(ELiveCodingCompileResult CompileResult)
@@ -183,7 +167,7 @@ FString FSlateAgentBridgeLiveCodingManager::CompileResultToString(ELiveCodingCom
 	}
 }
 
-bool FSlateAgentBridgeLiveCodingManager::EnsureCaptureAvailable(FString& OutErrorMessage) const
+bool FSlateAgentBridgeLiveCodingManager::EnsureCaptureAvailable(FString& OutErrorMessage)
 {
 	if (!LogCapture.IsValid())
 	{
@@ -213,4 +197,46 @@ bool FSlateAgentBridgeLiveCodingManager::EnsureLiveCodingAvailable(FString& OutE
 	}
 
 	return true;
+}
+
+void FSlateAgentBridgeLiveCodingManager::FinalizeCompile(TArray<FSlateAgentBridgeLogEntry>&& CapturedEntries, ELiveCodingCompileResult Result, const FString& ErrorMessage)
+{
+	{
+		FScopeLock LogLock(&LogMutex);
+		LastCompileLogEntries = MoveTemp(CapturedEntries);
+		LastCompileTimestamp = FDateTime::UtcNow();
+		LastCompileResult = Result;
+		LastErrorMessage = ErrorMessage;
+		bHasCompileResult = true;
+	}
+
+	bCompileInProgress.Store(false);
+
+	switch (Result)
+	{
+	case ELiveCodingCompileResult::Success:
+		UE_LOG(LogSlateAgentBridge, Display, TEXT("Live Coding compile completed with changes."));
+		break;
+	case ELiveCodingCompileResult::NoChanges:
+		UE_LOG(LogSlateAgentBridge, Display, TEXT("Live Coding compile completed with no changes."));
+		break;
+	case ELiveCodingCompileResult::Failure:
+		UE_LOG(LogSlateAgentBridge, Error, TEXT("Live Coding compile failed. See log for details."));
+		break;
+	case ELiveCodingCompileResult::Cancelled:
+		UE_LOG(LogSlateAgentBridge, Warning, TEXT("Live Coding compile was cancelled."));
+		break;
+	default:
+		break;
+	}
+}
+
+void FSlateAgentBridgeLiveCodingManager::FinalizeCompileWithError(const FString& ErrorMessage, ELiveCodingCompileResult Result)
+{
+	TArray<FSlateAgentBridgeLogEntry> EmptyEntries;
+	if (!ErrorMessage.IsEmpty())
+	{
+		UE_LOG(LogSlateAgentBridge, Error, TEXT("%s"), *ErrorMessage);
+	}
+	FinalizeCompile(MoveTemp(EmptyEntries), Result, ErrorMessage);
 }

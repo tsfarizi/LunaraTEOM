@@ -24,6 +24,38 @@
 		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
 	},
 	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Plugins\\SlateAgentBridge\\Source\\SlateAgentBridge\\Private\\SlateAgentBridgeLiveCodingLogCapture.cpp",
+		"arguments": [
+			"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\SlateAgentBridge.257.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Plugins\\SlateAgentBridge\\Source\\SlateAgentBridge\\Private\\SlateAgentBridgeLiveCodingLogCapture.h",
+		"arguments": [
+			"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\SlateAgentBridge.257.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Plugins\\SlateAgentBridge\\Source\\SlateAgentBridge\\Private\\SlateAgentBridgeLiveCodingManager.cpp",
+		"arguments": [
+			"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\SlateAgentBridge.257.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Plugins\\SlateAgentBridge\\Source\\SlateAgentBridge\\Private\\SlateAgentBridgeLiveCodingManager.h",
+		"arguments": [
+			"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\SlateAgentBridge.257.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
 		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Plugins\\SlateAgentBridge\\Source\\SlateAgentBridge\\Private\\SlateAgentBridgeModule.cpp",
 		"arguments": [
 			"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
@@ -81,6 +113,22 @@
 	},
 	{
 		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Plugins\\SlateAgentBridge\\Source\\SlateAgentBridge\\Public\\SlateAgentBridgeEditorModeToolkit.h",
+		"arguments": [
+			"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\SlateAgentBridge.257.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Plugins\\SlateAgentBridge\\Source\\SlateAgentBridge\\Public\\SlateAgentBridgeLiveCodingTypes.h",
+		"arguments": [
+			"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
+			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\SlateAgentBridge.257.rsp"
+		],
+		"directory": "C:\\Program Files\\Epic Games\\UE_5.6\\Engine\\Source"
+	},
+	{
+		"file": "C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\Plugins\\SlateAgentBridge\\Source\\SlateAgentBridge\\Public\\SlateAgentBridgeLog.h",
 		"arguments": [
 			"C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Tools\\MSVC\\14.44.35207\\bin\\Hostx64\\x64\\cl.exe",
 			"@C:\\Users\\teuku\\Documents\\Unreal Projects\\LunaraTEOM\\.vscode\\compileCommands_LunaraTEOM\\SlateAgentBridge.257.rsp"

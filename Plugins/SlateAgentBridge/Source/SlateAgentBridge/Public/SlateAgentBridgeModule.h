@@ -26,14 +26,16 @@ public:
 	virtual void ShutdownModule() override;
 
 private:
-	void RegisterHttpEndpoint();
-	void UnregisterHttpEndpoint();
-	bool HandleLiveCodingCompileRequest(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete);
+    void RegisterHttpEndpoint();
+    void UnregisterHttpEndpoint();
+    bool HandleLiveCodingCompileRequest(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete);
+    bool HandleLiveCodingStatusRequest(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete);
 
 private:
-	TSharedPtr<IHttpRouter> HttpRouter;
-	FHttpRouteHandle LiveCodingRouteHandle;
-	TUniquePtr<FSlateAgentBridgeLiveCodingManager> LiveCodingManager;
-	uint32 HttpServerPort = 8133;
-	FString LiveCodingRoutePath = TEXT("/api/livecoding/compile");
+    TSharedPtr<IHttpRouter> HttpRouter;
+    FHttpRouteHandle LiveCodingRouteHandle;
+    FHttpRouteHandle LiveCodingStatusRouteHandle;
+    TUniquePtr<FSlateAgentBridgeLiveCodingManager> LiveCodingManager;
+    uint32 HttpServerPort = 8133;
+    FString LiveCodingRoutePath = TEXT("/api/livecoding/compile");
 };

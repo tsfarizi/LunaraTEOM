@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
-#include "SlateAgentBridgeModule.h"
 #include "SlateAgentBridgeSimpleTool.h"
+#include "SlateAgentBridgeModule.h"
 #include "InteractiveToolManager.h"
 #include "ToolBuilderUtil.h"
 #include "CollisionQueryParams.h"

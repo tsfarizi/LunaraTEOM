@@ -11,8 +11,6 @@
 #include "ILiveCodingModule.h"
 #include "Dom/JsonObject.h"
 #include "Dom/JsonValue.h"
-#include "HAL/Event.h"
-#include "HAL/PlatformProcess.h"
 #include "HttpPath.h"
 #include "HttpServerConstants.h"
 #include "HttpServerModule.h"
@@ -108,16 +106,22 @@ void FSlateAgentBridgeModule::RegisterHttpEndpoint()
 		return;
 	}
 
-	const FHttpPath RoutePath(LiveCodingRoutePath);
-	const FHttpRequestHandler Handler = FHttpRequestHandler::CreateRaw(this, &FSlateAgentBridgeModule::HandleLiveCodingCompileRequest);
+    const FHttpPath RoutePath(LiveCodingRoutePath);
+    const FHttpRequestHandler CompileHandler = FHttpRequestHandler::CreateRaw(this, &FSlateAgentBridgeModule::HandleLiveCodingCompileRequest);
 
-	LiveCodingRouteHandle = HttpRouter->BindRoute(RoutePath, EHttpServerRequestVerbs::VERB_POST, Handler);
-	if (!LiveCodingRouteHandle.IsValid())
-	{
-		UE_LOG(LogSlateAgentBridge, Error, TEXT("Failed to bind live coding compile route at %s"), *LiveCodingRoutePath);
-		HttpRouter.Reset();
-		return;
-	}
+    // Accept both POST (intended) and GET (handy for quick manual testing)
+    LiveCodingRouteHandle = HttpRouter->BindRoute(RoutePath, static_cast<EHttpServerRequestVerbs>(EHttpServerRequestVerbs::VERB_POST | EHttpServerRequestVerbs::VERB_GET), CompileHandler);
+    if (!LiveCodingRouteHandle.IsValid())
+    {
+        UE_LOG(LogSlateAgentBridge, Error, TEXT("Failed to bind live coding compile route at %s"), *LiveCodingRoutePath);
+        HttpRouter.Reset();
+        return;
+    }
+
+    // Status route for quick checks without triggering compile
+    const FHttpPath StatusPath(TEXT("/api/livecoding/status"));
+    const FHttpRequestHandler StatusHandler = FHttpRequestHandler::CreateRaw(this, &FSlateAgentBridgeModule::HandleLiveCodingStatusRequest);
+    LiveCodingStatusRouteHandle = HttpRouter->BindRoute(StatusPath, EHttpServerRequestVerbs::VERB_GET, StatusHandler);
 
 	HttpServerModule.StartAllListeners();
 
@@ -126,13 +130,18 @@ void FSlateAgentBridgeModule::RegisterHttpEndpoint()
 
 void FSlateAgentBridgeModule::UnregisterHttpEndpoint()
 {
-	if (HttpRouter.IsValid() && LiveCodingRouteHandle.IsValid())
-	{
-		HttpRouter->UnbindRoute(LiveCodingRouteHandle);
-		LiveCodingRouteHandle = FHttpRouteHandle();
-	}
+    if (HttpRouter.IsValid() && LiveCodingRouteHandle.IsValid())
+    {
+        HttpRouter->UnbindRoute(LiveCodingRouteHandle);
+        LiveCodingRouteHandle = FHttpRouteHandle();
+    }
+    if (HttpRouter.IsValid() && LiveCodingStatusRouteHandle.IsValid())
+    {
+        HttpRouter->UnbindRoute(LiveCodingStatusRouteHandle);
+        LiveCodingStatusRouteHandle = FHttpRouteHandle();
+    }
 
-	HttpRouter.Reset();
+    HttpRouter.Reset();
 }
 
 bool FSlateAgentBridgeModule::HandleLiveCodingCompileRequest(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
@@ -145,42 +154,47 @@ bool FSlateAgentBridgeModule::HandleLiveCodingCompileRequest(const FHttpServerRe
 		return true;
 	}
 
-	struct FCompileExecutionContext
+	FString PreflightError;
+	if (!LiveCodingManager->TryBeginCompile(PreflightError))
 	{
-		bool bSuccess = false;
-		FString ErrorMessage;
-		ELiveCodingCompileResult CompileResult = ELiveCodingCompileResult::NotStarted;
-	};
+		TSharedRef<FJsonObject> ErrorPayload = MakeShared<FJsonObject>();
+		ErrorPayload->SetStringField(TEXT("status"), TEXT("error"));
+		ErrorPayload->SetStringField(TEXT("compileResult"), FSlateAgentBridgeLiveCodingManager::CompileResultToString(ELiveCodingCompileResult::CompileStillActive));
+		ErrorPayload->SetStringField(TEXT("message"), PreflightError);
+		ErrorPayload->SetStringField(TEXT("route"), LiveCodingRoutePath);
 
-	FCompileExecutionContext ExecutionContext;
-	FEvent* CompletionEvent = FPlatformProcess::GetSynchEventFromPool(true);
-	FSlateAgentBridgeLiveCodingManager* ManagerPtr = LiveCodingManager.Get();
+		FString ErrorBody;
+		TSharedRef<TJsonWriter<>> ErrorWriter = TJsonWriterFactory<>::Create(&ErrorBody);
+		FJsonSerializer::Serialize(ErrorPayload, ErrorWriter);
 
-	AsyncTask(ENamedThreads::GameThread, [ManagerPtr, &ExecutionContext, CompletionEvent]()
-	{
-		ExecutionContext.bSuccess = ManagerPtr->ExecuteCompile(ExecutionContext.ErrorMessage, ExecutionContext.CompileResult);
-		CompletionEvent->Trigger();
-	});
-
-	CompletionEvent->Wait();
-	FPlatformProcess::ReturnSynchEventToPool(CompletionEvent);
+		TUniquePtr<FHttpServerResponse> Response = FHttpServerResponse::Create(ErrorBody, TEXT("application/json"));
+		Response->Code = EHttpServerResponseCodes::Conflict;
+		OnComplete(MoveTemp(Response));
+		return true;
+	}
 
 	TArray<FSlateAgentBridgeLogEntry> LogSnapshot;
 	FDateTime SnapshotTimestamp;
-	ELiveCodingCompileResult SnapshotResult = ELiveCodingCompileResult::NotStarted;
+	ELiveCodingCompileResult SnapshotResult = ELiveCodingCompileResult::InProgress;
 	bool bHasSnapshotResult = false;
+	FString SnapshotError;
+	bool bIsInProgress = true;
 
-	ManagerPtr->GetLastCompileSnapshot(LogSnapshot, SnapshotTimestamp, SnapshotResult, bHasSnapshotResult);
-
-	const ELiveCodingCompileResult ResultToReport = ExecutionContext.bSuccess ? ExecutionContext.CompileResult : SnapshotResult;
+	LiveCodingManager->GetLastCompileSnapshot(LogSnapshot, SnapshotTimestamp, SnapshotResult, bHasSnapshotResult, SnapshotError, bIsInProgress);
 
 	TSharedRef<FJsonObject> JsonPayload = MakeShared<FJsonObject>();
-	JsonPayload->SetStringField(TEXT("status"), ExecutionContext.bSuccess ? TEXT("ok") : TEXT("error"));
-	JsonPayload->SetStringField(TEXT("compileResult"), FSlateAgentBridgeLiveCodingManager::CompileResultToString(ResultToReport));
+	JsonPayload->SetStringField(TEXT("status"), TEXT("ok"));
+	JsonPayload->SetStringField(TEXT("compileResult"), FSlateAgentBridgeLiveCodingManager::CompileResultToString(SnapshotResult));
+	JsonPayload->SetBoolField(TEXT("compileStarted"), true);
+	JsonPayload->SetBoolField(TEXT("compileInProgress"), bIsInProgress);
 
-	if (!ExecutionContext.ErrorMessage.IsEmpty())
+	if (!SnapshotError.IsEmpty())
 	{
-		JsonPayload->SetStringField(TEXT("message"), ExecutionContext.ErrorMessage);
+		JsonPayload->SetStringField(TEXT("message"), SnapshotError);
+	}
+	else
+	{
+		JsonPayload->SetStringField(TEXT("message"), TEXT("Compile queued. Poll /api/livecoding/status for updates."));
 	}
 
 	if (SnapshotTimestamp.GetTicks() > 0)
@@ -209,10 +223,82 @@ bool FSlateAgentBridgeModule::HandleLiveCodingCompileRequest(const FHttpServerRe
 	FJsonSerializer::Serialize(JsonPayload, Writer);
 
 	TUniquePtr<FHttpServerResponse> Response = FHttpServerResponse::Create(ResponseBody, TEXT("application/json"));
-	Response->Code = ExecutionContext.bSuccess ? EHttpServerResponseCodes::Ok : EHttpServerResponseCodes::ServerError;
+	Response->Code = EHttpServerResponseCodes::Accepted;
 	OnComplete(MoveTemp(Response));
 
+	FSlateAgentBridgeLiveCodingManager* ManagerPtr = LiveCodingManager.Get();
+	AsyncTask(ENamedThreads::GameThread, [ManagerPtr]()
+	{
+		ManagerPtr->ExecuteCompileOnGameThread();
+	});
+
 	return true;
+}
+
+bool FSlateAgentBridgeModule::HandleLiveCodingStatusRequest(const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
+{
+    if (!LiveCodingManager)
+    {
+        TUniquePtr<FHttpServerResponse> Response = FHttpServerResponse::Create(TEXT("{\"status\":\"error\",\"message\":\"Live coding manager is not initialized\"}"), TEXT("application/json"));
+        Response->Code = EHttpServerResponseCodes::ServerError;
+        OnComplete(MoveTemp(Response));
+        return true;
+    }
+
+    TArray<FSlateAgentBridgeLogEntry> LogSnapshot;
+    FDateTime SnapshotTimestamp;
+    ELiveCodingCompileResult SnapshotResult = ELiveCodingCompileResult::NotStarted;
+    bool bHasSnapshotResult = false;
+    FString SnapshotError;
+    bool bIsInProgress = false;
+
+    LiveCodingManager->GetLastCompileSnapshot(LogSnapshot, SnapshotTimestamp, SnapshotResult, bHasSnapshotResult, SnapshotError, bIsInProgress);
+
+    TSharedRef<FJsonObject> JsonPayload = MakeShared<FJsonObject>();
+    JsonPayload->SetStringField(TEXT("status"), TEXT("ok"));
+    JsonPayload->SetStringField(TEXT("compileResult"), FSlateAgentBridgeLiveCodingManager::CompileResultToString(SnapshotResult));
+    JsonPayload->SetBoolField(TEXT("compileInProgress"), bIsInProgress);
+    JsonPayload->SetBoolField(TEXT("hasPreviousResult"), bHasSnapshotResult);
+    if (SnapshotTimestamp.GetTicks() > 0)
+    {
+        JsonPayload->SetStringField(TEXT("timestampUtc"), SnapshotTimestamp.ToIso8601());
+    }
+    if (!SnapshotError.IsEmpty())
+    {
+        JsonPayload->SetStringField(TEXT("message"), SnapshotError);
+    }
+    else if (bIsInProgress)
+    {
+        JsonPayload->SetStringField(TEXT("message"), TEXT("Compile in progress."));
+    }
+    else if (!bHasSnapshotResult)
+    {
+        JsonPayload->SetStringField(TEXT("message"), TEXT("No compile has been executed yet."));
+    }
+
+    JsonPayload->SetStringField(TEXT("route"), LiveCodingRoutePath);
+
+    TArray<TSharedPtr<FJsonValue>> LogArray;
+    LogArray.Reserve(LogSnapshot.Num());
+    for (const FSlateAgentBridgeLogEntry& Entry : LogSnapshot)
+    {
+        TSharedRef<FJsonObject> LogObject = MakeShared<FJsonObject>();
+        LogObject->SetStringField(TEXT("timeUtc"), Entry.Timestamp.ToIso8601());
+        LogObject->SetStringField(TEXT("category"), Entry.Category);
+        LogObject->SetStringField(TEXT("verbosity"), Entry.Verbosity);
+        LogObject->SetStringField(TEXT("message"), Entry.Message);
+        LogArray.Add(MakeShared<FJsonValueObject>(LogObject));
+    }
+    JsonPayload->SetArrayField(TEXT("log"), LogArray);
+
+    FString ResponseBody;
+    TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&ResponseBody);
+    FJsonSerializer::Serialize(JsonPayload, Writer);
+
+    TUniquePtr<FHttpServerResponse> Response = FHttpServerResponse::Create(ResponseBody, TEXT("application/json"));
+    Response->Code = EHttpServerResponseCodes::Ok;
+    OnComplete(MoveTemp(Response));
+    return true;
 }
 
 #undef LOCTEXT_NAMESPACE
