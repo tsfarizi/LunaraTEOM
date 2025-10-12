@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+using System.IO;
 using UnrealBuildTool;
 
 public class LunaraTEOM : ModuleRules
@@ -11,6 +12,12 @@ public class LunaraTEOM : ModuleRules
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "Slate", "SlateCore" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {"Slate","SlateCore","UMG",});
+
+		var SvgImporterPath = Path.Combine(EngineDirectory, "Plugins", "Experimental", "SVGImporter");
+		if (Directory.Exists(SvgImporterPath))
+		{
+			PrivateDependencyModuleNames.Add("SVGImporter");
+		}
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

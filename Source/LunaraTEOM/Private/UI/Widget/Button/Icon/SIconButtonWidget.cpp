@@ -7,8 +7,16 @@
 #include "Widgets/Images/SImage.h"
 #include "Widgets/Layout/SBox.h"
 
+#include "Slate/SlateVectorArtData.h"
 #include "Engine/Texture2D.h"
 #include "Materials/MaterialInterface.h"
+
+#if __has_include("SVGImporter/Public/SVGData.h")
+#define WITH_SVG_IMPORTER 1
+#include "SVGImporter/Public/SVGData.h"
+#else
+#define WITH_SVG_IMPORTER 0
+#endif
 
 #include "SlateOptMacros.h"
 
@@ -176,9 +184,60 @@ void SIconButtonWidget::RefreshIconBrush()
 
     UObject* IconObject = IconAsset.IsNull() ? nullptr : IconAsset.LoadSynchronous();
 
+#if !UE_BUILD_SHIPPING
+    if (IconObject)
+    {
+        UE_LOG(LogTemp, Verbose, TEXT("SIconButtonWidget: Loaded icon asset %s (%s)"), *IconObject->GetName(), *IconObject->GetClass()->GetName());
+    }
+    else
+    {
+        UE_LOG(LogTemp, Verbose, TEXT("SIconButtonWidget: Icon asset is null"));
+    }
+#endif
+
     const float MaxIconSize = ButtonDiameter * IconScale;
 
-    if (UTexture2D* Texture = Cast<UTexture2D>(IconObject))
+    if (USlateVectorArtData* VectorArt = Cast<USlateVectorArtData>(IconObject))
+    {
+        IconBrush.ImageType = ESlateBrushImageType::Vector;
+        IconBrush.SetResourceObject(VectorArt);
+        IconBrush.ImageSize = FVector2D(MaxIconSize, MaxIconSize);
+    }
+#if WITH_SVG_IMPORTER
+    else if (const USVGData* SVGData = Cast<USVGData>(IconObject))
+    {
+        UTexture2D* SVGTexture = SVGData ? SVGData->SVGTexture : nullptr;
+#if !UE_BUILD_SHIPPING
+        UE_LOG(LogTemp, Verbose, TEXT("SIconButtonWidget: SVGData %s texture %s"),
+            *SVGData->GetName(),
+            SVGTexture ? *SVGTexture->GetName() : TEXT("nullptr"));
+#endif
+        if (SVGTexture)
+        {
+            FVector2D Size(static_cast<float>(SVGTexture->GetSizeX()), static_cast<float>(SVGTexture->GetSizeY()));
+            if (Size.GetMax() <= 0.f)
+            {
+                Size = FVector2D(MaxIconSize, MaxIconSize);
+            }
+
+            const float Scale = FMath::Min(MaxIconSize / Size.X, MaxIconSize / Size.Y);
+            if (Scale < 1.f)
+            {
+                Size *= Scale;
+            }
+
+            IconBrush.SetResourceObject(SVGTexture);
+            IconBrush.ImageSize = Size;
+            IconBrush.ImageType = ESlateBrushImageType::FullColor;
+        }
+        else
+        {
+            IconBrush.SetResourceObject(nullptr);
+            IconBrush.ImageSize = FVector2D::ZeroVector;
+        }
+    }
+#endif
+    else if (UTexture2D* Texture = Cast<UTexture2D>(IconObject))
     {
         FVector2D Size(static_cast<float>(Texture->GetSizeX()), static_cast<float>(Texture->GetSizeY()));
         if (Size.GetMax() <= 0.f)

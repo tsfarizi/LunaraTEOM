@@ -18,8 +18,8 @@ class LUNARATEOM_API UIconButtonWidget : public UWidget
     GENERATED_BODY()
 
 public:
-    /** Asset that will be rendered inside the button as the icon texture or material. */
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance", meta = (AllowedClasses = "Texture2D,MaterialInterface"))
+    /** Asset that will be rendered inside the button as the icon texture, material, vector art, or SVG. */
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Appearance", meta = (AllowedClasses = "Texture2D,MaterialInterface,SlateVectorArtData,SVGData"))
     TSoftObjectPtr<UObject> IconAsset;
 
     /** Diameter in pixels used to size the circular icon button. */

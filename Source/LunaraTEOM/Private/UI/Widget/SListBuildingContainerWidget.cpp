@@ -22,6 +22,16 @@
 #include "Widgets/SOverlay.h"
 #include "Widgets/Text/STextBlock.h"
 
+#include "Engine/Texture2D.h"
+#include "Slate/SlateVectorArtData.h"
+
+#if __has_include("SVGImporter/Public/SVGData.h")
+#define WITH_SVG_IMPORTER 1
+#include "SVGImporter/Public/SVGData.h"
+#else
+#define WITH_SVG_IMPORTER 0
+#endif
+
 #include "Framework/Application/SlateApplication.h"
 #include "InputCoreTypes.h"
 
@@ -307,6 +317,41 @@ void SListBuildingContainerWidget::RebuildButtonList()
         if (ShouldDisplayIcon(Item.Icon))
         {
             IconBrush = MakeShared<FSlateBrush>(Item.Icon);
+            if (IconBrush->DrawAs == ESlateBrushDrawType::NoDrawType)
+            {
+                IconBrush->DrawAs = ESlateBrushDrawType::Image;
+            }
+
+            if (UObject* Resource = IconBrush->GetResourceObject())
+            {
+                if (USlateVectorArtData* VectorArt = Cast<USlateVectorArtData>(Resource))
+                {
+                    IconBrush->ImageType = ESlateBrushImageType::Vector;
+                    IconBrush->SetResourceObject(VectorArt);
+                }
+#if WITH_SVG_IMPORTER
+                else if (const USVGData* SVGData = Cast<USVGData>(Resource))
+                {
+                    if (UTexture2D* SVGTexture = SVGData->SVGTexture)
+                    {
+#if !UE_BUILD_SHIPPING
+                        UE_LOG(LogTemp, Verbose, TEXT("SListBuildingContainerWidget: Rebinding SVGData %s to texture %s"),
+                            *SVGData->GetName(),
+                            *SVGTexture->GetName());
+#endif
+                        IconBrush->SetResourceObject(SVGTexture);
+                        IconBrush->ImageType = ESlateBrushImageType::FullColor;
+                    }
+#if !UE_BUILD_SHIPPING
+                    else
+                    {
+                        UE_LOG(LogTemp, Warning, TEXT("SListBuildingContainerWidget: SVGData %s has no SVGTexture"), *SVGData->GetName());
+                    }
+#endif
+                }
+#endif
+            }
+
             ButtonIconBrushes.Add(IconBrush);
         }
         else
